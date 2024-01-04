@@ -1,25 +1,24 @@
-version: "3.2"
+version: '3.2'
 services:
-
-  db:
-    container_name: db
-    image: mcr.microsoft.com/mssql/server:latest
-    user: root
-    ports:
-      - "1433:1433"
-    environment:
-      SA_PASSWORD: ${DB_USER}
-      ACCEPT_EULA: "Y"
-      MSSQL_PID: Express
-    volumes:
-      - ./db/data:/var/opt/mssql/data 
-      - ./db/log:/var/opt/mssql/log
-      - ./db/secrets:/var/opt/mssql/secrets
-    networks:
-      - local-dotnet-dev
+    db:
+        container_name: db
+        image: mcr.microsoft.com/mssql/server:latest
+        user: root
+        ports:
+            - '1433:1433'
+        environment:
+            SA_PASSWORD: ${SA_PASSWORD}
+            ACCEPT_EULA: 'Y'
+            MSSQL_PID: Express
+        volumes:
+            - ./db/data:/var/opt/mssql/data
+            - ./db/log:/var/opt/mssql/log
+            - ./db/secrets:/var/opt/mssql/secrets
+        networks:
+            - local-dotnet-dev
 
 networks:
     local-dotnet-dev:
 #        ipam:
 #            config:
-#                - subnet: 172.50.0.0/24      
+#                - subnet: 172.50.0.0/24
