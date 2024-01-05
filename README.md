@@ -134,6 +134,7 @@ dotnet new mvc --output myProject --name myProject --framework net8.0 (create an
 dotnet sln add myProject/myProject.csproj
 dotnet run --project myProject
 dotnet run --project myProject --launch-profile https  // starts app with a profile in myProject/Properties/launchSettings.json
+dotnet watch --project myProject --launch-profile https // this hot reloads changes to views
 // open browser to http://localhost:5162.  This infromation is in myProject/Properties/launchSettings.json
 // use  myProject/Properties/launchSettings.json to change which port app is accessible from if you like
 
