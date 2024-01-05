@@ -53,6 +53,14 @@ namespace bookstore.Controllers
                 ModelState.AddModelError("Name", "The Display Order cannot exactly match the Name.");
             }
 
+            // If name is "test"
+            if (!category.Name.IsNullOrEmpty() && category.Name.Equals("test", StringComparison.CurrentCultureIgnoreCase))
+            {
+                // update ModelState with custome error (key, errormessage) where key 
+                // is the name of the field in the model you wish to display this error for.
+                ModelState.AddModelError("", "Test is an invalid value.");
+            }
+
             if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
             {
                 _db.Database

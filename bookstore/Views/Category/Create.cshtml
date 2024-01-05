@@ -10,8 +10,12 @@
         In addition to asp-validation-for for individual fields we also have
         asp-validation-summary for general validation messages.
         It will display all error messages generated in a bulleted list.
+        Three flavors are available
+        1. asp-validation-summary="All". Displays all error messages.
+        2. asp-validation-summary="ModelOnly". Does not display property related validations. That any errors that have the key assigned for the ModelState
+        3. asp-validation-summary="None". Displays no errors
         -->
-        <div asp-validation-summary="All"></div>
+        <div asp-validation-summary="ModelOnly"></div>
         <div class="row mb-3 p-1">
             <!-- 
             asp-for is what connects our html to our model fields 
@@ -43,3 +47,14 @@
         </div>
     </div>
 </form>
+
+<!-- 
+Add client-side validation in addition to the server-side validation above 
+Client-side valididation is implemented using jquery from the partial scripts files
+in the shared views. The syntax below is generally for consuming a partial view.
+-->
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}
