@@ -39,5 +39,16 @@ namespace bookstore.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        public IActionResult Create(Category category)
+        {
+            _db.Database
+                .ExecuteSql($@"
+                    INSERT INTO dbo.Categories (Name, DisplayOrder)
+                    VALUES ({category.Name}, {category.DisplayOrder});
+                ");
+            return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
+        }
     }
 }
