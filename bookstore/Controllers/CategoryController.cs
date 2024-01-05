@@ -34,5 +34,10 @@ namespace bookstore.Controllers
             Console.WriteLine(string.Join(", ", categoryList.Select(c => c.Name)));
             return View(categoryList);
         }
+
+        public IActionResult Create()
+        {
+            return View();
+        }
     }
 }
