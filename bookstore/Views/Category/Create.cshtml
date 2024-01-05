@@ -7,12 +7,18 @@
             <hr />
         </div>
         <div class="row mb-3 p-1">
-            <label class="p-0">Name</label>
-            <input class="form-control" type="text" />
+            <!-- asp-for is what connects our html to our model fields -->
+            <!-- Note below we do not even have to specify text for label -->
+            <!-- It pulls it directly from the model annotations or the model field itelf if no annotation is present -->
+            <label asp-for="Name" class="p-0"></label>
+            <input asp-for="Name" class="form-control" />
         </div>
         <div class="row mb-3 p-1">
-            <label class="p-0">Display Order</label>
-            <input class="form-control" type="number" />
+            <!-- asp-for is what connects our html to our model fields -->
+            <!-- Note below we do not even have to specify text for label -->
+            <!-- It pulls it directly from the model annotations or the model field itelf if no annotation is present -->
+            <label asp-for="DisplayOrder" class="p-0"></label>
+            <input asp-for="DisplayOrder" class="form-control" />
         </div>
         <div class="row">
             <div class="col-6 col-md-3 p-1">
