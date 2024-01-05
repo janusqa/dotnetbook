@@ -6,19 +6,31 @@
             <h2 class="text-primary">Create Category</h2>
             <hr />
         </div>
+        <!-- 
+        In addition to asp-validation-for for individual fields we also have
+        asp-validation-summary for general validation messages.
+        It will display all error messages generated in a bulleted list.
+        -->
+        <div asp-validation-summary="All"></div>
         <div class="row mb-3 p-1">
-            <!-- asp-for is what connects our html to our model fields -->
-            <!-- Note below we do not even have to specify text for label -->
-            <!-- It pulls it directly from the model annotations or the model field itelf if no annotation is present -->
+            <!-- 
+            asp-for is what connects our html to our model fields 
+            Note below we do not even have to specify text for label 
+            It pulls it directly from the model annotations or the model field itelf if no annotation is present 
+             -->
             <label asp-for="Name" class="p-0"></label>
             <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
         </div>
         <div class="row mb-3 p-1">
-            <!-- asp-for is what connects our html to our model fields -->
-            <!-- Note below we do not even have to specify text for label -->
-            <!-- It pulls it directly from the model annotations or the model field itelf if no annotation is present -->
+            <!-- 
+            asp-for is what connects our html to our model fields
+            Note below we do not even have to specify text for label
+            It pulls it directly from the model annotations or the model field itelf if no annotation is present 
+            -->
             <label asp-for="DisplayOrder" class="p-0"></label>
             <input asp-for="DisplayOrder" class="form-control" />
+            <span asp-validation-for="DisplayOrder" class="text-danger"></span>
         </div>
         <div class="row">
             <div class="col-6 col-md-3 p-1">

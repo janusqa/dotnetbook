@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using bookstore.Data;
 using bookstore.Models;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 
 namespace bookstore.Controllers
 {
@@ -31,7 +33,6 @@ namespace bookstore.Controllers
             var categoryList = _db.Categories
                 .FromSql($"SELECT * FROM dbo.Categories")
                 .ToList();
-            Console.WriteLine(string.Join(", ", categoryList.Select(c => c.Name)));
             return View(categoryList);
         }
 
@@ -43,12 +44,27 @@ namespace bookstore.Controllers
         [HttpPost]
         public IActionResult Create(Category category)
         {
-            _db.Database
-                .ExecuteSql($@"
+            // Add our own custom checks
+            // Mame and ValidationOrder cannot be same
+            if (!category.Name.IsNullOrEmpty() && category.Name.Equals(category.DisplayOrder.ToString(), StringComparison.CurrentCultureIgnoreCase))
+            {
+                // update ModelState with custome error (key, errormessage) where key 
+                // is the name of the field in the model you wish to display this error for.
+                ModelState.AddModelError("Name", "The Display Order cannot exactly match the Name.");
+            }
+
+            if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
+            {
+                _db.Database
+                    .ExecuteSql($@"
                     INSERT INTO dbo.Categories (Name, DisplayOrder)
                     VALUES ({category.Name}, {category.DisplayOrder});
                 ");
-            return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
+                return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
+            }
+            return View();
+
+
         }
     }
 }
