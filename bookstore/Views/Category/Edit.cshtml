@@ -1,5 +1,60 @@
 @model Category
 
-<p>@Model.Id</p>
-<p>@Model.Name</p>
-<p>@Model.DisplayOrder</p>
+<form method="POST">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Edit Category</h2>
+            <hr />
+        </div>
+        <!-- 
+        In addition to asp-validation-for for individual fields we also have
+        asp-validation-summary for general validation messages.
+        It will display all error messages generated in a bulleted list.
+        Three flavors are available
+        1. asp-validation-summary="All". Displays all error messages.
+        2. asp-validation-summary="ModelOnly". Does not display property related validations. That any errors that have the key assigned for the ModelState
+        3. asp-validation-summary="None". Displays no errors
+        -->
+        <div asp-validation-summary="ModelOnly"></div>
+        <div class="row mb-3 p-1">
+            <!-- 
+            asp-for is what connects our html to our model fields 
+            Note below we do not even have to specify text for label 
+            It pulls it directly from the model annotations or the model field itelf if no annotation is present 
+             -->
+            <label asp-for="Name" class="p-0"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="row mb-3 p-1">
+            <!-- 
+            asp-for is what connects our html to our model fields
+            Note below we do not even have to specify text for label
+            It pulls it directly from the model annotations or the model field itelf if no annotation is present 
+            -->
+            <label asp-for="DisplayOrder" class="p-0"></label>
+            <input asp-for="DisplayOrder" class="form-control" />
+            <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+        </div>
+        <div class="row">
+            <div class="col-6 col-md-3 p-1">
+                <button class="btn btn-primary form-control" type="submit">Update</button>
+            </div>
+            <div class="col-6 col-md-3 p-1">
+                <a class="btn btn-outline-secondary border form-control" asp-controller="Category"
+                    asp-action="Index">Categories</a>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- 
+Add client-side validation in addition to the server-side validation above 
+Client-side valididation is implemented using jquery from the partial scripts files
+in the shared views. The syntax below is generally for consuming a partial view.
+-->
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}

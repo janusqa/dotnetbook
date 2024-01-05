@@ -113,9 +113,11 @@ namespace bookstore.Controllers
             {
                 _db.Database
                     .ExecuteSql($@"
-                        UDATE dbo.Categories SET 
-                        Name = {category.Name}, DisplayOrder = {category.DisplayOrder}
-                        WHERE Id ={category.Id};
+                        UPDATE dbo.Categories 
+                        SET 
+                            Name = {category.Name}, 
+                            DisplayOrder = {category.DisplayOrder}
+                        WHERE Id = {category.Id};
                     ");
                 return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
             }
