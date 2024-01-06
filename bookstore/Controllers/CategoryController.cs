@@ -68,6 +68,7 @@ namespace bookstore.Controllers
                         INSERT INTO dbo.Categories (Name, DisplayOrder)
                         VALUES ({category.Name}, {category.DisplayOrder});
                     ");
+                TempData["success"] = "Category created successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
             }
 
@@ -119,10 +120,47 @@ namespace bookstore.Controllers
                             DisplayOrder = {category.DisplayOrder}
                         WHERE Id = {category.Id};
                     ");
+                TempData["success"] = "Category updated successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
             }
 
             return View();
+        }
+
+        public IActionResult Delete(int? categoryId)
+        {
+            if (categoryId == null || categoryId == 0) return NotFound();
+
+            var category = _db.Categories
+                .FromSql($@"
+                    SELECT * FROM dbo.Categories
+                    WHERE Id = {categoryId}
+                ").FirstOrDefault();
+
+            if (category == null) return NotFound();
+
+            return View(category);
+        }
+
+        // We have to be careful here. We need to name this ACTION
+        // as DeletePOST so it does not conflict with the above ACTION
+        // which will have same NAME and PARAMS.
+        // To tie this action back to the same NAME above we annote it
+        // with "ActionName" and the common name for our action.
+        // This effectively sets this action's name as "Delete" even though
+        // it is physically named "DeletePOST"
+        [HttpPost, ActionName("Delete")]
+        public IActionResult DeletePOST(int? categoryId)
+        {
+            if (categoryId == null || categoryId == 0) return NotFound();
+
+            _db.Database
+                .ExecuteSql($@"
+                        DELETE FROM dbo.Categories 
+                        WHERE Id = {categoryId};
+                    ");
+            TempData["success"] = "Category deleted successfully"; // used for passing data in the next rendered page.
+            return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
         }
     }
 }
