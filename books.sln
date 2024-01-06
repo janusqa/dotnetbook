@@ -5,6 +5,12 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bookstore", "bookstore\bookstore.csproj", "{4547B5F1-5436-49D9-BB47-DEBB9960B91F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookstore.Models", "Bookstore.Models\Bookstore.Models.csproj", "{4EEEA0B5-D3C1-46F1-8436-C03799C34BC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookstore.DataAccess", "Bookstore.DataAccess\Bookstore.DataAccess.csproj", "{923E946A-7589-4DA8-A977-7C78D774C5AF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookstore.Utility", "Bookstore.Utility\Bookstore.Utility.csproj", "{C11D8491-4FEC-4CD4-B9A0-855B7089318E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +24,17 @@ Global
 		{4547B5F1-5436-49D9-BB47-DEBB9960B91F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4547B5F1-5436-49D9-BB47-DEBB9960B91F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4547B5F1-5436-49D9-BB47-DEBB9960B91F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4EEEA0B5-D3C1-46F1-8436-C03799C34BC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4EEEA0B5-D3C1-46F1-8436-C03799C34BC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4EEEA0B5-D3C1-46F1-8436-C03799C34BC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4EEEA0B5-D3C1-46F1-8436-C03799C34BC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{923E946A-7589-4DA8-A977-7C78D774C5AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{923E946A-7589-4DA8-A977-7C78D774C5AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{923E946A-7589-4DA8-A977-7C78D774C5AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{923E946A-7589-4DA8-A977-7C78D774C5AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C11D8491-4FEC-4CD4-B9A0-855B7089318E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C11D8491-4FEC-4CD4-B9A0-855B7089318E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C11D8491-4FEC-4CD4-B9A0-855B7089318E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C11D8491-4FEC-4CD4-B9A0-855B7089318E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -64,6 +64,13 @@
          8. Apply migrations
             1. dotnet ef migrations add [<NameOfMigrationCanBeAnythingYouWantSoMakeItDescriptive>]
             2. dotnet ef database update
+            3. IMPORTANT: IF YOU HAVE MOVED Data AND Migrations to their own start libray the comand to use would be
+            ```
+            dotnet ef migrations add MyMigration --project YourClassLibraryProjectName --startup-project YourWebAppProjectName 
+            
+            dotnet ef database update --startup-project path\to\your\startup\project.csproj
+            ```
+            The startup project is where the DbContext is.
 
 
 
