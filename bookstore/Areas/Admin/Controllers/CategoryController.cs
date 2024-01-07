@@ -113,9 +113,9 @@ namespace bookstore.Areas.Admin.Controllers
             {
                 _uow.Categories
                     .ExecuteSql($@"
-                        UPDATE dbo.Categories 
+                        UPDATE dbo.Categories
                         SET 
-                            Name =@Name, 
+                            Name = @Name, 
                             DisplayOrder = @DisplayOrder
                         WHERE Id = @Id;
                     ", [
@@ -159,7 +159,7 @@ namespace bookstore.Areas.Admin.Controllers
 
             _uow.Categories
                 .ExecuteSql($@"
-                        DELETE FROM dbo.Categories 
+                        DELETE FROM dbo.Categories
                         WHERE Id = @Id;
                     ", [new SqlParameter("Id", categoryId)]);
             TempData["success"] = "Category deleted successfully"; // used for passing data in the next rendered page.
