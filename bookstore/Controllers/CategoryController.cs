@@ -1,28 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Bookstore.DataAccess.Data;
-using Bookstore.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Bookstore.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
+using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
+using Microsoft.Data.SqlClient;
 
 namespace bookstore.Controllers
 {
     public class CategoryController : Controller
     {
 
-        private readonly ApplicationDbContext _db;
+        private readonly IUnitOfWork _uow;
         // pass in our db context to construtor of controller
         // We now have access to the db via this.
         // Recall we already have all this configured in the services
         // area of "Program.cs"
-        public CategoryController(ApplicationDbContext db)
+        public CategoryController(IUnitOfWork uow)
         {
-            _db = db;
+            _uow = uow;
         }
 
         public IActionResult Index()
@@ -30,8 +26,8 @@ namespace bookstore.Controllers
             // var categoryList = _db.Categories
             //     .FromSql($"SELECT * FROM dbo.Categories WHERE Name = {"SciFi"}")
             //     .ToList();
-            var categoryList = _db.Categories
-                .FromSql($"SELECT * FROM dbo.Categories")
+            var categoryList = _uow.Categories
+                .FromSql($"SELECT * FROM dbo.Categories", [])
                 .ToList();
             return View(categoryList);
         }
@@ -63,11 +59,13 @@ namespace bookstore.Controllers
 
             if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
             {
-                _db.Database
-                    .ExecuteSql($@"
+                _uow.Categories.ExecuteSql(@"
                         INSERT INTO dbo.Categories (Name, DisplayOrder)
-                        VALUES ({category.Name}, {category.DisplayOrder});
-                    ");
+                        VALUES (@Name, @DisplayOrder);
+                    ", [
+                            new SqlParameter("Name", category.Name),
+                            new SqlParameter("DisplayOrder", category.DisplayOrder)
+                        ]);
                 TempData["success"] = "Category created successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
             }
@@ -79,11 +77,11 @@ namespace bookstore.Controllers
         {
             if (categoryId == null || categoryId == 0) return NotFound();
 
-            var category = _db.Categories
+            var category = _uow.Categories
                 .FromSql($@"
                     SELECT * FROM dbo.Categories
-                    WHERE Id = {categoryId}
-                ").FirstOrDefault();
+                    WHERE Id = @Id
+                ", [new SqlParameter("Id", categoryId)]).FirstOrDefault();
 
             if (category == null) return NotFound();
 
@@ -112,14 +110,18 @@ namespace bookstore.Controllers
 
             if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
             {
-                _db.Database
+                _uow.Categories
                     .ExecuteSql($@"
                         UPDATE dbo.Categories 
                         SET 
-                            Name = {category.Name}, 
-                            DisplayOrder = {category.DisplayOrder}
-                        WHERE Id = {category.Id};
-                    ");
+                            Name =@Name, 
+                            DisplayOrder = @DisplayOrder
+                        WHERE Id = @Id;
+                    ", [
+                        new SqlParameter("Name", category.Name),
+                        new SqlParameter("DisplayOrder", category.DisplayOrder),
+                        new SqlParameter("Id", category.Id)
+                    ]);
                 TempData["success"] = "Category updated successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
             }
@@ -131,11 +133,11 @@ namespace bookstore.Controllers
         {
             if (categoryId == null || categoryId == 0) return NotFound();
 
-            var category = _db.Categories
+            var category = _uow.Categories
                 .FromSql($@"
                     SELECT * FROM dbo.Categories
-                    WHERE Id = {categoryId}
-                ").FirstOrDefault();
+                    WHERE Id = @Id
+                ", [new SqlParameter("Id", categoryId)]).FirstOrDefault();
 
             if (category == null) return NotFound();
 
@@ -154,11 +156,11 @@ namespace bookstore.Controllers
         {
             if (categoryId == null || categoryId == 0) return NotFound();
 
-            _db.Database
+            _uow.Categories
                 .ExecuteSql($@"
                         DELETE FROM dbo.Categories 
-                        WHERE Id = {categoryId};
-                    ");
+                        WHERE Id = @Id;
+                    ", [new SqlParameter("Id", categoryId)]);
             TempData["success"] = "Category deleted successfully"; // used for passing data in the next rendered page.
             return RedirectToAction("Index", "Category"); // redirects to the specified ACTION of secified CONTROLLER
         }
