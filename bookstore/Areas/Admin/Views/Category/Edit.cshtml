@@ -4,13 +4,13 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="text-white py-2">Create Category</h2>
+                <h2 class="text-white py-2">Edit Category</h2>
             </div>
         </div>
     </div>
     <div class="card-body p4">
-        <form class="row" method="POST">
-            <div class="border p-3">
+        <form method="POST">
+            <div class="border p-3 mt-4">
                 @*
                 In addition to asp-validation-for for individual fields we also have
                 asp-validation-summary for general validation messages.
@@ -22,6 +22,7 @@
                 3. asp-validation-summary="None". Displays no errors
                 *@
                 <div asp-validation-summary="ModelOnly"></div>
+                <input type="hidden" asp-for="Id" />
                 <div class="form-floating py-2 col-12">
                     @*
                     asp-for is what connects our html to our model fields
@@ -44,19 +45,17 @@
                 </div>
                 <div class="row mt-3">
                     <div class="col-6 col-md-3 p-1">
-                        <button class="btn btn-primary form-control" type="submit">Create</button>
+                        <button class="btn btn-primary form-control" type="submit">Update</button>
                     </div>
                     <div class="col-6 col-md-3 p-1">
-                        <a class="btn btn-outline-primary border form-control" asp-controller="Category"
-                            asp-action="Index">Categories</a>
+                        <a class="btn btn-outline-secondary border form-control" asp-area="Admin"
+                            asp-controller="Category" asp-action="Index">Categories</a>
                     </div>
                 </div>
             </div>
         </form>
     </div>
 </div>
-
-
 
 @*
 Add client-side validation in addition to the server-side validation above

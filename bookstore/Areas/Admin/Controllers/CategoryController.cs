@@ -6,8 +6,9 @@ using Microsoft.IdentityModel.Tokens;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.Data.SqlClient;
 
-namespace bookstore.Controllers
+namespace bookstore.Areas.Admin.Controllers
 {
+    [Area("Admin")]
     public class CategoryController : Controller
     {
 

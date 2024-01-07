@@ -72,8 +72,6 @@
             ```
             The startup project is where the DbContext is.
 
-
-
 5. CRTL+SHIFT+P.  In command palette type ">.NET: Generate Assets for Build and Debug".
    
 6. dotnet run // run source code 
@@ -125,6 +123,33 @@ dotnet aspnet-codegenerator controller --controllerName JokesController --model 
 # Scaffold a view 
 *** MUST BE IN PROJECT DIRECTORY NOT SOLUTION/ROOT DIRECTORY ***
 dotnet aspnet-codegenerator view Search Create --model Joke --dataContext ApplicationDbContext --relativeFolderPath Views/Jokes --referenceScriptLibraries --useDefaultLayout --partialView
+
+# Scaffold an area
+*** MUST BE IN PROJECT DIRECTORY NOT SOLUTION/ROOT DIRECTORY ***
+dotnet aspnet-codegenerator area [<AreaNameToGenerate>]
+A suggest will be made in recofiguring (adding a change in code) to the routing
+in Program.cs. It is straight forward and it is just now to include the concept of areas
+in the routing. Now we have areas, controller, action that specifies how a request is routed.
+Change
+```
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+```
+to
+```
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
+```
+Where "Customer" is the area that will be used by default. It could be any other one of our scaffoled areas.
+- Move Controllers and Views to their areas, remembering to update the namespace as neccessary.
+eg. [<project>].Controllers now becomes [<project>].Areas.[<AreaNameYouChose>].Controllers
+Now annotate your controllers etc. to indicate which Area a controller for example belongs too.
+eg. above the say CategoryController class in the Admin area annote it with [Area("Admin)]
+ - NOW move the views that correspond to each area inside their respective view area.
+Additionally must COPY "_ViewImports.cshtml" and "_ViewStart.cshtml" to the "Views" folder of each Area
+- Now go back to your views and update the links where you have asp-controller, asp-action, and now also add asp-area and set this to appropriate area. Even the shared views like "_Layout.cshtml" must be updated
 
 # Updataing the DB via migrations
 dotnet ef migrations add [<NameOfMigrationGoesHere>]  // Add a migration
