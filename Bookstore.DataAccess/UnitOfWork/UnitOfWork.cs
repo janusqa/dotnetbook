@@ -8,14 +8,14 @@ namespace BookStore.DataAccess.Repository
         private readonly ApplicationDbContext _db;
 
         public ICategoryRepository Categories { get; init; }
-        // public IProductRepository Products { get; init;}
+        public IProductRepository Products { get; init; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
             _db = db;
 
             Categories = new CategoryRepository(_db);
-            // Products = new ProductRepository(_db);
+            Products = new ProductRepository(_db);
         }
 
         public int Complete()
