@@ -29,13 +29,20 @@ namespace bookstore.Areas.Admin.Controllers
         public IActionResult Index()
         {
             var productList = _uow.Products
-                .FromSql(@$"
-                    SELECT * 
-                    FROM dbo.Products;
-                ", [])
+                .SqlQuery<ProductListViewModel>(@$"
+                    SELECT 
+                        p.Id AS Id,
+                        p.Title AS Title,
+                        p.ISBN AS ISBN,
+                        p.Author AS Author,
+                        p.Price AS Price,
+                        c.Name AS Category
+                    FROM dbo.Products p INNER JOIN dbo.Categories c
+                    ON (p.CategoryId = C.Id);
+                ", [])?
                 .ToList();
 
-            return View(productList);
+            return View(productList ?? []);
         }
 
         // for Create/Edit for product we will handle it differently to Category.
@@ -111,6 +118,17 @@ namespace bookstore.Areas.Admin.Controllers
                     string wwwRootPath = _webHostEnvrionment.WebRootPath;
                     string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
                     string productPath = Path.Combine(wwwRootPath, @"images/product");
+
+                    // if a file was uploaded and there is an existing file
+                    // we need to repalce the existing file by first deleting 
+                    // it and then copying in the new file. Otherwise, just
+                    // copy in the new file
+                    if (productView.Product.ImageUrl is not null && productView.Product.ImageUrl != "")
+                    {
+                        var existingImage = Path.Combine(wwwRootPath, productView.Product.ImageUrl[1..]);
+                        if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                    }
+
                     using (FileStream writer = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
                     {
                         file.CopyTo(writer);
@@ -119,7 +137,12 @@ namespace bookstore.Areas.Admin.Controllers
                 }
                 else
                 {
-                    productView.Product.ImageUrl = "";
+                    // if no file is uploaded but a file is already in the database
+                    // keep that file, otherwise set ImageUrl to empty string.
+                    productView.Product.ImageUrl =
+                        productView.Product.ImageUrl is null || productView.Product.ImageUrl == ""
+                        ? ""
+                        : productView.Product.ImageUrl;
                 }
 
                 _uow.Products.ExecuteSql(@"

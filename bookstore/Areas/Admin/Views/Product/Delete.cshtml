@@ -10,8 +10,8 @@
     </div>
     <div class="card-body p4">
         <form method="POST">
+            <input type="hidden" asp-for="Id" />
             <div class="border p-3">
-                <input type="hidden" asp-for="Id" />
                 <div class="form-floating py-2 col-12">
                     @*
                     asp-for is what connects our html to our model fields

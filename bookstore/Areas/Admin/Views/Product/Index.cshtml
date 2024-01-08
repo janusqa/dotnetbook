@@ -1,4 +1,4 @@
-@model List<Product>
+@model List<ProductListViewModel>
 
 @*
 Since we may reuse this TempData in multiple pages, better to add
@@ -50,7 +50,7 @@ If many pages need it, just add it to the partial _Layout.html
                         <td>@entity.ISBN</td>
                         <td>@entity.Price</td>
                         <td>@entity.Author</td>
-                        <td></td>
+                        <td>@entity.Category</td>
                         <td>
                             <div class="w-75 btn-group" role="group">
                                 <a class="btn btn-primary mx-2" asp-area="Admin" asp-controller="Product"
