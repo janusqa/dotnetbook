@@ -36,8 +36,29 @@ namespace bookstore.Areas.Admin.Controllers
             return View(productList);
         }
 
-        public IActionResult Create()
+        // for Create/Edit for product we will handle it differently to Category.
+        // We will use one View and One controller named Upsert that will handle
+        // The fuctionaility of both creating and updating.
+        public IActionResult Upsert(int? entityId)
         {
+            Product? product = entityId is null || entityId == 0
+                ? new Product()
+                : _uow.Products
+                .FromSql($@"
+                    SELECT * FROM dbo.Products
+                    WHERE Id = @Id
+                ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
+
+            if (product is null) return NotFound();
+
+            IEnumerable<SelectListItem> CategoryList =
+                _uow.Categories
+                .FromSql(@$"
+                    SELECT * 
+                    FROM dbo.Categories;
+                ", [])
+                .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+
             // ViewBag. use viewbag to pass extra information to 
             // view as since we can only past one object via View()
             // ViewBag transfers data from the controller to view, 
@@ -58,14 +79,6 @@ namespace bookstore.Areas.Admin.Controllers
             // AViewModel. As good as the above are they do not scale properly.
             // So a better option perhaps is to use ViewModel.
 
-            IEnumerable<SelectListItem> CategoryList =
-                _uow.Categories
-                .FromSql(@$"
-                    SELECT * 
-                    FROM dbo.Categories;
-                ", [])
-                .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
-
             // Note CategoryList is the key to access the data in the ViewBag.
             // It is a key we made up. It can be any string.
             // Use ViewModels. This is for demo only to show how ViewBag works
@@ -78,14 +91,14 @@ namespace bookstore.Areas.Admin.Controllers
             var ProductView = new ProductViewModel
             {
                 CategoryList = CategoryList,
-                Product = new Product()
+                Product = product
             };
 
             return View(ProductView);
         }
 
         [HttpPost]
-        public IActionResult Create(ProductViewModel productView)
+        public IActionResult Upsert(ProductViewModel productView, IFormFile? file)
         {
             // Add our own custom checks if any
 
@@ -117,25 +130,9 @@ namespace bookstore.Areas.Admin.Controllers
                 ", [])
                 .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
 
-
             productView.CategoryList = CategoryList;
 
             return View(productView);
-        }
-
-        public IActionResult Edit(int? entityId)
-        {
-            if (entityId == null || entityId == 0) return NotFound();
-
-            var product = _uow.Products
-                .FromSql($@"
-                    SELECT * FROM dbo.Products
-                    WHERE Id = @Id
-                ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
-
-            if (product == null) return NotFound();
-
-            return View(product);
         }
 
         [HttpPost]
@@ -178,7 +175,7 @@ namespace bookstore.Areas.Admin.Controllers
 
         public IActionResult Delete(int? entityId)
         {
-            if (entityId == null || entityId == 0) return NotFound();
+            if (entityId is null || entityId == 0) return NotFound();
 
             var product = _uow.Products
                 .FromSql($@"
@@ -186,7 +183,7 @@ namespace bookstore.Areas.Admin.Controllers
                     WHERE Id = @Id
                 ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
 
-            if (product == null) return NotFound();
+            if (product is null) return NotFound();
 
             return View(product);
         }
@@ -201,7 +198,7 @@ namespace bookstore.Areas.Admin.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeletePOST(int? entityId)
         {
-            if (entityId == null || entityId == 0) return NotFound();
+            if (entityId is null || entityId == 0) return NotFound();
 
             _uow.Products
                 .ExecuteSql($@"

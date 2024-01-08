@@ -45,6 +45,7 @@ namespace Bookstore.Models.Domain
         [ForeignKey("CategoryId")]
         public Category? Category { get; set; }
 
+        [Display(Name = "Image upload")]
         public string? ImageUrl { get; set; }
     }
 }

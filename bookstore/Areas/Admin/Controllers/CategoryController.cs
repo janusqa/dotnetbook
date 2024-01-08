@@ -76,7 +76,7 @@ namespace bookstore.Areas.Admin.Controllers
 
         public IActionResult Edit(int? categoryId)
         {
-            if (categoryId == null || categoryId == 0) return NotFound();
+            if (categoryId is null || categoryId == 0) return NotFound();
 
             var category = _uow.Categories
                 .FromSql($@"
@@ -84,7 +84,7 @@ namespace bookstore.Areas.Admin.Controllers
                     WHERE Id = @Id
                 ", [new SqlParameter("Id", categoryId)]).FirstOrDefault();
 
-            if (category == null) return NotFound();
+            if (category is null) return NotFound();
 
             return View(category);
         }
@@ -132,7 +132,7 @@ namespace bookstore.Areas.Admin.Controllers
 
         public IActionResult Delete(int? categoryId)
         {
-            if (categoryId == null || categoryId == 0) return NotFound();
+            if (categoryId is null || categoryId == 0) return NotFound();
 
             var category = _uow.Categories
                 .FromSql($@"
@@ -140,7 +140,7 @@ namespace bookstore.Areas.Admin.Controllers
                     WHERE Id = @Id
                 ", [new SqlParameter("Id", categoryId)]).FirstOrDefault();
 
-            if (category == null) return NotFound();
+            if (category is null) return NotFound();
 
             return View(category);
         }
@@ -155,7 +155,7 @@ namespace bookstore.Areas.Admin.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeletePOST(int? categoryId)
         {
-            if (categoryId == null || categoryId == 0) return NotFound();
+            if (categoryId is null || categoryId == 0) return NotFound();
 
             _uow.Categories
                 .ExecuteSql($@"

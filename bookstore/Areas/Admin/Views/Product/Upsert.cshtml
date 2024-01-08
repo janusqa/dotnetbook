@@ -4,13 +4,14 @@
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
-                <h2 class="text-white py-2">Create Product</h2>
+                <h2 class="text-white py-2">@(Model.Product.Id == 0 ? "Create" : "Update") Product</h2>
             </div>
         </div>
     </div>
     <div class="card-body p4">
-        <form class="row" method="POST">
+        <form class="row" method="POST" enctype="multipart/form-data">
             <div class="border p-3">
+                <input type="hidden" asp-for="Product.Id" />
                 @*
                 In addition to asp-validation-for for individual fields we also have
                 asp-validation-summary for general validation messages.
@@ -40,7 +41,7 @@
                     *@
                     <textarea asp-for="Product.Description" class="form-control border-0 shadow"></textarea>
                     <label asp-for="Product.Description" class="ms-0"></label>
-                    <span asp-validation-for="Product.Description" class="text-danger"></span>
+                    @* <span asp-validation-for="Product.Description" class="text-danger"></span> *@
                 </div>
                 <div class="form-floating py-2 col-12">
                     @*
@@ -143,13 +144,19 @@
                     Note below we do not even have to specify text for label
                     It pulls it directly from the model annotations or the model field itelf if no annotation is present
                     *@
-                    <input asp-for="Product.ImageUrl" class="form-control border-0 shadow" />
+                    <input type="file" class="form-control border-0 shadow" />
                     <label asp-for="Product.ImageUrl" class="ms-0"></label>
-                    <span asp-validation-for="Product.ImageUrl" class="text-danger"></span>
                 </div>
                 <div class="row mt-3">
                     <div class="col-6 col-md-3 p-1">
-                        <button class="btn btn-primary form-control" type="submit">Create</button>
+                        @if (Model.Product.Id == 0)
+                        {
+                            <button class="btn btn-primary form-control" type="submit">Create</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary form-control" type="submit">Update</button>
+                        }
                     </div>
                     <div class="col-6 col-md-3 p-1">
                         <a class="btn btn-outline-primary border form-control" asp-area="Admin" asp-controller="Product"
@@ -169,6 +176,22 @@ Client-side valididation is implemented using jquery from the partial scripts fi
 in the shared views. The syntax below is generally for consuming a partial view.
 *@
 @section Scripts {
+    <script>
+        tinymce.init({
+            selector: 'textarea',
+        @* plugins: 'ai tinycomments mentions anchor autolink charmap codesample emoticons image link lists media searchreplace table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed permanentpen footnotes advtemplate advtable advcode editimage tableofcontents mergetags powerpaste tinymcespellchecker autocorrect a11ychecker typography inlinecss', *@
+        @* toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | link image media table mergetags | align lineheight | tinycomments | checklist numlist bullist indent outdent | emoticons charmap | removeformat', *@
+            plugins: 'ai tinycomments mentions anchor autolink charmap codesample emoticons lists table visualblocks wordcount checklist mediaembed casechange export formatpainter pageembed permanentpen footnotes advtemplate advtable advcode editimage tableofcontents mergetags powerpaste tinymcespellchecker autocorrect a11ychecker typography inlinecss',
+            toolbar: 'undo redo | blocks fontfamily fontsize | bold italic underline strikethrough | align lineheight | tinycomments | checklist numlist bullist indent outdent',
+            tinycomments_mode: 'embedded',
+            tinycomments_author: 'Author name',
+            mergetags_list: [
+            { value: 'First.Name', title: 'First Name' },
+            { value: 'Email', title: 'Email' },
+        ],
+            ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
+                            });
+    </script>
     @{
         <partial name="_ValidationScriptsPartial" />
     }
