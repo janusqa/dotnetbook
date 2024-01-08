@@ -17,5 +17,7 @@ namespace BookStore.DataAccess.Repository.IRepository
 
         IEnumerable<T> FromSql(string sql, List<SqlParameter> sqlParameters);
         void ExecuteSql(string sql, List<SqlParameter> sqlParameters);
+
+        IEnumerable<T> SqlQuery(string sql, List<SqlParameter> sqlParameters);
     }
 }

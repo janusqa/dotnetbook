@@ -108,6 +108,7 @@ add "<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>"  to .csproj file.
 dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
 dotnet add package Microsoft.EntityFrameworkCore.Design
 dotnet add package Microsoft.EntityFrameworkCore.Tools
+dotnet add package Microsoft.AspNetCore.Mvc.ViewFeatures // for things like SelectListItem 
 ```
 replace "Server=(localdb)\\mssqllocaldb;Database=jokes;Trusted_Connection=True;MultipleActiveResultSets=true
 with     "Server=localhost,1433;Database=jokes;User Id=sa;Password=P@ssw0rd;TrustServerCertificate=True;MultipleActiveResultSets=true"

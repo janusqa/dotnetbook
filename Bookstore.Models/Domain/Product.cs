@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Bookstore.Models.Domain
 {
@@ -8,34 +9,42 @@ namespace Bookstore.Models.Domain
         public int Id { get; set; }
 
         [Required] // This annotation indicates to EF that this is a required field
-        public required string Title { get; set; }
+        public string? Title { get; set; }
 
         public string? Description { get; set; }
 
         [Required]
-        public required string ISBN { get; set; }
+        public string? ISBN { get; set; }
 
         [Required]
-        public required string Author { get; set; }
+        public string? Author { get; set; }
 
         [Required]
         [Display(Name = "List Price")] // this is another way of putting a custom display name
         [Range(1, 1000)]
-        public required double ListPrice { get; set; }
+        public double ListPrice { get; set; }
 
         [Required]
         [Display(Name = "Price for 1-50")] // this is another way of putting a custom display name
         [Range(1, 1000)]
-        public required double Price { get; set; }
+        public double Price { get; set; }
 
         [Required]
         [Display(Name = "Price for 50+")] // this is another way of putting a custom display name
         [Range(1, 1000)]
-        public required double Price50 { get; set; }
+        public double Price50 { get; set; }
 
         [Required]
         [Display(Name = "Price for 100+")] // this is another way of putting a custom display name
         [Range(1, 1000)]
-        public required double Price100 { get; set; }
+        public double Price100 { get; set; }
+
+        // Add CateogyId as a foreign key to the Product table
+        [Display(Name = "Category")]
+        public int CategoryId { get; set; }
+        [ForeignKey("CategoryId")]
+        public Category? Category { get; set; }
+
+        public string? ImageUrl { get; set; }
     }
 }

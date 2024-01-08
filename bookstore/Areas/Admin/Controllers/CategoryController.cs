@@ -43,7 +43,7 @@ namespace bookstore.Areas.Admin.Controllers
         {
             // Add our own custom checks
             // Mame and ValidationOrder cannot be same
-            if (!category.Name.IsNullOrEmpty() && category.Name.Equals(category.DisplayOrder.ToString(), StringComparison.CurrentCultureIgnoreCase))
+            if (category.Name is not null && category.Name.Equals(category.DisplayOrder.ToString(), StringComparison.CurrentCultureIgnoreCase))
             {
                 // update ModelState with custome error (key, errormessage) where key 
                 // is the name of the field in the model you wish to display this error for.
@@ -51,7 +51,7 @@ namespace bookstore.Areas.Admin.Controllers
             }
 
             // If name is "test"
-            if (!category.Name.IsNullOrEmpty() && category.Name.Equals("test", StringComparison.CurrentCultureIgnoreCase))
+            if (category.Name is not null && category.Name.Equals("test", StringComparison.CurrentCultureIgnoreCase))
             {
                 // update ModelState with custome error (key, errormessage) where key 
                 // is the name of the field in the model you wish to display this error for.
@@ -94,7 +94,7 @@ namespace bookstore.Areas.Admin.Controllers
         {
             // Add our own custom checks
             // Mame and ValidationOrder cannot be same
-            if (!category.Name.IsNullOrEmpty() && category.Name.Equals(category.DisplayOrder.ToString(), StringComparison.CurrentCultureIgnoreCase))
+            if (category.Name is not null && category.Name.Equals(category.DisplayOrder.ToString(), StringComparison.CurrentCultureIgnoreCase))
             {
                 // update ModelState with custome error (key, errormessage) where key 
                 // is the name of the field in the model you wish to display this error for.
@@ -102,7 +102,7 @@ namespace bookstore.Areas.Admin.Controllers
             }
 
             // If name is "test"
-            if (!category.Name.IsNullOrEmpty() && category.Name.Equals("test", StringComparison.CurrentCultureIgnoreCase))
+            if (category.Name is not null && category.Name.Equals("test", StringComparison.CurrentCultureIgnoreCase))
             {
                 // update ModelState with custome error (key, errormessage) where key 
                 // is the name of the field in the model you wish to display this error for.

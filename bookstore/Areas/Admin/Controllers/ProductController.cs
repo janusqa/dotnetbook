@@ -5,6 +5,8 @@ using Bookstore.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Bookstore.Models.ViewModels;
 
 namespace bookstore.Areas.Admin.Controllers
 {
@@ -25,41 +27,100 @@ namespace bookstore.Areas.Admin.Controllers
         public IActionResult Index()
         {
             var productList = _uow.Products
-                .FromSql($"SELECT * FROM dbo.Products", [])
+                .FromSql(@$"
+                    SELECT * 
+                    FROM dbo.Products;
+                ", [])
                 .ToList();
+
             return View(productList);
         }
 
         public IActionResult Create()
         {
-            return View();
+            // ViewBag. use viewbag to pass extra information to 
+            // view as since we can only past one object via View()
+            // ViewBag transfers data from the controller to view, 
+            // and not vice versa. Ideal for situations in which 
+            // the temporary data is not in a model. Lifetime is
+            // only during request and will be null on redirection
+
+            // ViewData. Alternatively to ViewBag we can use ViewData
+            // It is derived from ViewDataDictionary, and it must be 
+            // typecast before use. Lifetime isonly during request 
+            // and will be null on redirection
+
+            // TempData.  Another alternative is to use TempData
+            // to past one time messages to the view. We have 
+            // use it to pass error/success messages before
+            // but it can also be used for scenarios like this
+
+            // AViewModel. As good as the above are they do not scale properly.
+            // So a better option perhaps is to use ViewModel.
+
+            IEnumerable<SelectListItem> CategoryList =
+                _uow.Categories
+                .FromSql(@$"
+                    SELECT * 
+                    FROM dbo.Categories;
+                ", [])
+                .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+
+            // Note CategoryList is the key to access the data in the ViewBag.
+            // It is a key we made up. It can be any string.
+            // Use ViewModels. This is for demo only to show how ViewBag works
+            ViewBag.CategoryList = CategoryList;
+
+            // Note no need to use both VieBag and ViewData here
+            // Using ViewData is for Demo purposes righ now.
+            ViewData["CategoryList"] = CategoryList;
+
+            var ProductView = new ProductViewModel
+            {
+                CategoryList = CategoryList,
+                Product = new Product()
+            };
+
+            return View(ProductView);
         }
 
         [HttpPost]
-        public IActionResult Create(Product product)
+        public IActionResult Create(ProductViewModel productView)
         {
             // Add our own custom checks if any
 
             if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
             {
                 _uow.Products.ExecuteSql(@"
-                        INSERT INTO dbo.Products (Title, Description, ISBN, Author, ListPrice, Price, Price50, Price100)
-                        VALUES (@Title, @Description, @ISBN, @Author, @ListPrice, @Price, @Price50, @Price100);
+                        INSERT INTO dbo.Products (Title, Description, ISBN, Author, ListPrice, Price, Price50, Price100, CategoryId)
+                        VALUES (@Title, @Description, @ISBN, @Author, @ListPrice, @Price, @Price50, @Price100, @CategoryId);
                     ", [
-                            new SqlParameter("Title", product.Title),
-                            new SqlParameter("Description", product.Description),
-                            new SqlParameter("ISBN", product.ISBN),
-                            new SqlParameter("Author", product.Author),
-                            new SqlParameter("ListPrice", product.ListPrice),
-                            new SqlParameter("Price", product.Price),
-                            new SqlParameter("Price50", product.Price50),
-                            new SqlParameter("Price100", product.Price100)
+                            new SqlParameter("Title", productView.Product.Title),
+                            new SqlParameter("Description", productView.Product.Description),
+                            new SqlParameter("ISBN", productView.Product.ISBN),
+                            new SqlParameter("Author", productView.Product.Author),
+                            new SqlParameter("ListPrice", productView.Product.ListPrice),
+                            new SqlParameter("Price", productView.Product.Price),
+                            new SqlParameter("Price50", productView.Product.Price50),
+                            new SqlParameter("Price100", productView.Product.Price100),
+                            new SqlParameter("CategoryId", productView.Product.CategoryId)
                         ]);
                 TempData["success"] = "Product created successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
             }
 
-            return View();
+            IEnumerable<SelectListItem> CategoryList =
+                _uow.Categories
+                .FromSql(@$"
+                    SELECT * 
+                    FROM dbo.Categories;
+                ", [])
+                .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+
+
+            productView.CategoryList = CategoryList;
+
+            return View(productView);
         }
 
         public IActionResult Edit(int? entityId)
