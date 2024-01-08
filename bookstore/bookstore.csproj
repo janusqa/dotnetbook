@@ -26,4 +26,9 @@
     <ProjectReference Include="..\Bookstore.Utility\Bookstore.Utility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <!-- extends watching group to include *.js files -->
+    <Watch Include="wwwroot\images\product\*" Exclude="true" />
+  </ItemGroup>
+
 </Project>

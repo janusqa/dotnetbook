@@ -144,7 +144,12 @@
                     Note below we do not even have to specify text for label
                     It pulls it directly from the model annotations or the model field itelf if no annotation is present
                     *@
-                    <input type="file" class="form-control border-0 shadow" />
+                    @*
+                    for file uploads controller expects submission to have a name.
+                    so we supply a name attribute. It can be anything. In this case we
+                    called it "file"
+                    *@
+                    <input type="file" name="file" class="form-control border-0 shadow" />
                     <label asp-for="Product.ImageUrl" class="ms-0"></label>
                 </div>
                 <div class="row mt-3">
@@ -190,7 +195,7 @@ in the shared views. The syntax below is generally for consuming a partial view.
             { value: 'Email', title: 'Email' },
         ],
             ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                            });
+                                });
     </script>
     @{
         <partial name="_ValidationScriptsPartial" />
