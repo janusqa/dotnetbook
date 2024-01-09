@@ -7,6 +7,9 @@ using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.Data.SqlClient;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Bookstore.Models.ViewModels;
+using Microsoft.CodeAnalysis.Elfie.Serialization;
+using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace bookstore.Areas.Admin.Controllers
 {
@@ -180,7 +183,7 @@ namespace bookstore.Areas.Admin.Controllers
                             new SqlParameter("CategoryId", productView.Product.CategoryId),
                             new SqlParameter("ImageUrl", productView.Product.ImageUrl)
                         ]);
-                TempData["success"] = "Product created successfully"; // used for passing data in the next rendered page.
+                TempData["success"] = $"Product {(productView.Product.Id == 0 ? "created" : "updated")} successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
             }
 
@@ -197,6 +200,14 @@ namespace bookstore.Areas.Admin.Controllers
             return View(productView);
         }
 
+
+        // NOTE: we originally we had a mvc delete controller with view
+        // we are now using this api to delete without showing a view.
+        // so that controller is now deprecated and of no use. 
+        // Keeping it around as just an example of a controller
+        // that means the controller below both of them are no
+        // in use. They are depracated in favor of DeleteEntiy 
+        // API in the regions at end of this page.
         public IActionResult Delete(int? entityId)
         {
             if (entityId is null || entityId == 0) return NotFound();
@@ -232,5 +243,65 @@ namespace bookstore.Areas.Admin.Controllers
             TempData["success"] = "Product deleted successfully"; // used for passing data in the next rendered page.
             return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
         }
+
+        // we can define WebApi calls directly in mvc by creating a region
+        // use WebAPI annotations
+        #region API CALLS
+        [HttpGet]
+        public IActionResult GetAll()
+        {
+
+            var productList = _uow.Products
+                .SqlQuery<ProductListViewModel>(@$"
+                    SELECT 
+                        p.Id AS Id,
+                        p.Title AS Title,
+                        p.ISBN AS ISBN,
+                        p.Author AS Author,
+                        p.ListPrice AS Price,
+                        c.Name AS Category
+                    FROM dbo.Products p INNER JOIN dbo.Categories c
+                    ON (p.CategoryId = C.Id);
+                ", [])?
+                .ToList();
+
+            return Json(new { data = productList ?? [] });
+        }
+
+        // NOTE: we originally we had a mvc delete controller with view
+        // we are now using this api to delete without showing a view.
+        // so that controller is now deprecated and of no use. 
+        // Keeping it around as just an example of a controller
+        [HttpDelete]
+        public IActionResult Delete([FromBody] JsonElement requestBody)
+        {
+            int? entityId = requestBody.GetProperty("entityId").GetInt32();
+            if (entityId is null || entityId == 0) return Json(new { success = false, message = "Not found" });
+
+            Console.WriteLine($"Got here -> {entityId}");
+            var ImageUrlToDelete = _uow.Products.SqlQuery<string>(@$"
+                    SELECT 
+                        ImageUrl
+                    FROM dbo.Products
+                    WHERE (Id = @Id);
+                ", [new SqlParameter("Id", entityId)])?
+            .FirstOrDefault();
+
+            if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
+            {
+                string wwwRootPath = _webHostEnvrionment.WebRootPath;
+                string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
+                if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+            }
+
+            _uow.Products.ExecuteSql($@"
+                    DELETE FROM dbo.Products  WHERE Id = @Id;
+                ", [new SqlParameter("Id", entityId)]);
+
+            return Json(new { success = true, message = "Delete successful" });
+
+        }
+        #endregion
+
     }
 }

@@ -31,39 +31,55 @@ If many pages need it, just add it to the partial _Layout.html
                     Create</a>
             </div>
         </div>
-        <table class="table table-bordered table-striped">
-            <thead>
-                <tr>
-                    <th>Title</th>
-                    <th>ISBN</th>
-                    <th>Price</th>
-                    <th>Author</th>
-                    <th>Category</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
+        <div class="table-responsive">
+            @*
+            The data for this table is loaded in a datatable.net datatable
+            The js script is in bookstore/wwwroot/js/product.js
+            *@
+            <table id="tblData" dt-responsive class="table table-bordered table-striped dt-responsive">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>ISBN</th>
+                        <th>Price</th>
+                        <th>Author</th>
+                        <th>Category</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                @*
+                This for loop (and tbody) no longer necessary since we will use a datatable
+                from datatable.net.
+                *@
+                @*
+                <tbody>
                 @foreach (var entity in Model)
                 {
-                    <tr>
-                        <td>@entity.Title</td>
-                        <td>@entity.ISBN</td>
-                        <td>@entity.Price</td>
-                        <td>@entity.Author</td>
-                        <td>@entity.Category</td>
-                        <td>
-                            <div class="w-75 btn-group" role="group">
-                                <a class="btn btn-primary mx-2" asp-area="Admin" asp-controller="Product"
-                                    asp-action="Upsert" asp-route-entityId="@entity.Id"><i class="bi bi-pencil-square"></i>
-                                    Edit</a>
-                                <a class="btn btn-danger mx-2" asp-area="Admin" asp-controller="Product" asp-action="Delete"
-                                    asp-route-entityId="@entity.Id"><i class="bi bi-trash-fill"></i>
-                                    Delete</a>
-                            </div>
-                        </td>
-                    </tr>
+                <tr>
+                <td>@entity.Title</td>
+                <td>@entity.ISBN</td>
+                <td>@entity.Price</td>
+                <td>@entity.Author</td>
+                <td>@entity.Category</td>
+                <td>
+                <div class="w-75 btn-group" role="group">
+                <a class="btn btn-primary mx-2" asp-area="Admin" asp-controller="Product"
+                asp-action="Upsert" asp-route-entityId="@entity.Id"><i class="bi bi-pencil-square"></i>
+                Edit</a>
+                <a class="btn btn-danger mx-2" asp-area="Admin" asp-controller="Product" asp-action="Delete"
+                asp-route-entityId="@entity.Id"><i class="bi bi-trash-fill"></i>
+                Delete</a>
+                </div>
+                </td>
+                </tr>
                 }
-            </tbody>
-        </table>
+                </tbody>
+                *@
+            </table>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/product.js"></script>
+}
