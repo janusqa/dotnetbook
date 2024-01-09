@@ -1,4 +1,4 @@
-@model List<ProductListViewModel>
+@model List<Product>
 
 @*
 Since we may reuse this TempData in multiple pages, better to add
@@ -36,7 +36,7 @@ If many pages need it, just add it to the partial _Layout.html
             The data for this table is loaded in a datatable.net datatable
             The js script is in bookstore/wwwroot/js/product.js
             *@
-            <table id="tblData" dt-responsive class="table table-bordered table-striped dt-responsive">
+            <table id="tblData" class="table table-bordered table-striped dt-responsive">
                 <thead>
                     <tr>
                         <th>Title</th>

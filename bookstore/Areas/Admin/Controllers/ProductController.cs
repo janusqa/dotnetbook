@@ -32,18 +32,31 @@ namespace bookstore.Areas.Admin.Controllers
         public IActionResult Index()
         {
             var productList = _uow.Products
-                .SqlQuery<ProductListViewModel>(@$"
-                    SELECT 
-                        p.Id AS Id,
-                        p.Title AS Title,
-                        p.ISBN AS ISBN,
-                        p.Author AS Author,
-                        p.Price AS Price,
-                        c.Name AS Category
-                    FROM dbo.Products p INNER JOIN dbo.Categories c
-                    ON (p.CategoryId = C.Id);
-                ", [])?
-                .ToList();
+            .SqlQuery<ProductWithCategory>(@$"
+                SELECT 
+                    p.*,
+                    c.Name AS CategoryName,
+                    c.DisplayOrder As CategoryDisplayOrder
+                FROM dbo.Products p INNER JOIN dbo.Categories c
+                ON (p.CategoryId = C.Id)
+            ", [])?
+            .Select(pwc =>
+                new Product
+                {
+                    Id = pwc.Id,
+                    Title = pwc.Title,
+                    Description = pwc.Description,
+                    ISBN = pwc.ISBN,
+                    Author = pwc.Author,
+                    ListPrice = pwc.ListPrice,
+                    Price = pwc.Price,
+                    Price50 = pwc.Price50,
+                    Price100 = pwc.Price100,
+                    ImageUrl = pwc.ImageUrl,
+                    CategoryId = pwc.CategoryId,
+                    Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
+                }
+            ).ToList();
 
             return View(productList ?? []);
         }
@@ -200,7 +213,6 @@ namespace bookstore.Areas.Admin.Controllers
             return View(productView);
         }
 
-
         // NOTE: we originally we had a mvc delete controller with view
         // we are now using this api to delete without showing a view.
         // so that controller is now deprecated and of no use. 
@@ -250,20 +262,32 @@ namespace bookstore.Areas.Admin.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
-
             var productList = _uow.Products
-                .SqlQuery<ProductListViewModel>(@$"
-                    SELECT 
-                        p.Id AS Id,
-                        p.Title AS Title,
-                        p.ISBN AS ISBN,
-                        p.Author AS Author,
-                        p.ListPrice AS Price,
-                        c.Name AS Category
-                    FROM dbo.Products p INNER JOIN dbo.Categories c
-                    ON (p.CategoryId = C.Id);
-                ", [])?
-                .ToList();
+            .SqlQuery<ProductWithCategory>(@$"
+                SELECT 
+                    p.*,
+                    c.Name AS CategoryName,
+                    c.DisplayOrder As CategoryDisplayOrder
+                FROM dbo.Products p INNER JOIN dbo.Categories c
+                ON (p.CategoryId = C.Id)
+            ", [])?
+            .Select(pwc =>
+                new Product
+                {
+                    Id = pwc.Id,
+                    Title = pwc.Title,
+                    Description = pwc.Description,
+                    ISBN = pwc.ISBN,
+                    Author = pwc.Author,
+                    ListPrice = pwc.ListPrice,
+                    Price = pwc.Price,
+                    Price50 = pwc.Price50,
+                    Price100 = pwc.Price100,
+                    ImageUrl = pwc.ImageUrl,
+                    CategoryId = pwc.CategoryId,
+                    Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
+                }
+            ).ToList();
 
             return Json(new { data = productList ?? [] });
         }

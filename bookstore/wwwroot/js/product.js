@@ -8,9 +8,9 @@ const loadDataTable = () => {
         columns: [
             { data: 'title' },
             { data: 'isbn' },
-            { data: 'price' },
+            { data: 'listPrice' },
             { data: 'author' },
-            { data: 'category' },
+            { data: 'category.name' },
             {
                 data: 'id',
                 render: (data) => `
@@ -43,8 +43,8 @@ const Delete = (url, id) => {
                 .then((res) => res.json())
                 .then((data) => {
                     if (data.success) {
-                        toastr.success(data.message);
                         productDataTable.ajax.reload();
+                        toastr.success(data.message);
                     } else {
                         toastr.error('Something went worng. Please try again.');
                     }
