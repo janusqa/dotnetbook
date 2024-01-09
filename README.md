@@ -54,6 +54,11 @@
             15. I use "dotnet aspnet-codegenerator identity"  to install everything
             16. Note the generator will try to put in program.cs its own DBContext. Delete it and adjust this line to use our own existing context which we adjusted above to be IdentityDbContext.  This is the line to adjust in program.cs (builder.Services.AddDefaultIdentity.....)  
             17. We can optionally add <IdentityUser> to our  public class ApplicationDbContext : IdentityDbContext<IdentityUser> like that. TOTALLY OPTIONAL
+            18. Add app.UseAuthentication() to program.cs. It must be added right before app.UseAuthorization()
+            19. In appSettings.json Identity scaffolding tried to add a new connection.  We dont need it! Delete it!!!
+            20. Now back in program.cs add two things
+                1.  builder.Services.AddRazorPages();
+                2.  app.MapRazorPages();
          2. Now update migrations after adding these packages
             1. dotnet ef migrations add InitialCreate
             2. dotnet ef database update
