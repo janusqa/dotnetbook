@@ -1,6 +1,6 @@
 ﻿@model List<Product>
 
-<div class="row pb-3">
+<div class="row pb-3 mb-4">
     @foreach (var product in Model)
     {
         <div class="col-lg-3 col-sm-6">
@@ -9,7 +9,9 @@
                     <div class="card border-0 p-3 shadow border-top border-4 rounded">
                         @if (@product.ImageUrl is not null && @product.ImageUrl != "")
                         {
-                            <img src="@product.ImageUrl" class="card-img-top rounded" />
+                            <a asp-area="Customer" asp-controller="Home" asp-action="Details" asp-route-entityId="@product.Id">
+                                <img src="@product.ImageUrl" class="card-img-top rounded" />
+                            </a>
                         }
                         <div class="card-body pb-0">
                             <div class="pl-1">

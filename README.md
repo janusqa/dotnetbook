@@ -37,11 +37,23 @@
       4. dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
       5. If PROJECT IS ALREADY SET UP we can still set up -au (authentication) and -uld (use local database)
          1. run the following commands to set up -au (authentication)
-            1. dotnet add package Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore
-            2. dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore
-            3. dotnet add package Microsoft.AspNetCore.Identity.UI
-            4. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
-            5. dotnet add package Microsoft.EntityFrameworkCore.Tools
+            2. dotnet add package Microsoft.AspNetCore.Identity.EntityFrameworkCore // this should be added to the DataAccess Project
+            3. In our DataAccess Project and class inherit from IdentityDbContext instead of just DbContext
+            4. Now in OnModelCreating method add this line as the first line.
+               "base OnModelCreating(ModelBuilder)"
+            5. ADD THE BELOW TO THE MAIN PROJECT....
+            6. dotnet add package Microsoft.Extensions.Identity.Stores --version 8.0.0
+            7. dotnet add package Microsoft.AspNetCore.Identity.UI --version 8.0.0
+            8. dotnet add package Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore
+            9. dotnet add package Microsoft.EntityFrameworkCore.Design
+            10. dotnet add package Microsoft.VisualStudio.Web.CodeGeneration.Design
+            11. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
+            12. dotnet add package Microsoft.EntityFrameworkCore.Tools
+            13. run command "dotnet aspnet-codegenerator identity -h"  // see scaffolding options
+            14. run "dotnet aspnet-codegenerator identity --useDefaultUI"  // implement basic setup. Also see scaffolding options for other scenarios  
+            15. I use "dotnet aspnet-codegenerator identity"  to install everything
+            16. Note the generator will try to put in program.cs its own DBContext. Delete it and adjust this line to use our own existing context which we adjusted above to be IdentityDbContext.  This is the line to adjust in program.cs (builder.Services.AddDefaultIdentity.....)  
+            17. We can optionally add <IdentityUser> to our  public class ApplicationDbContext : IdentityDbContext<IdentityUser> like that. TOTALLY OPTIONAL
          2. Now update migrations after adding these packages
             1. dotnet ef migrations add InitialCreate
             2. dotnet ef database update

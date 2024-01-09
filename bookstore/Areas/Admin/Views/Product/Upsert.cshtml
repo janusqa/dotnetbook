@@ -1,6 +1,6 @@
 @model ProductViewModel
 
-<div class="card shadow border-0 mt4">
+<div class="card shadow border-0 mt-4 mb-4">
     <div class="card-header bg-secondary bg-gradient ml-0 py-3">
         <div class="row">
             <div class="col-12 text-center">
@@ -215,7 +215,7 @@ in the shared views. The syntax below is generally for consuming a partial view.
             { value: 'Email', title: 'Email' },
         ],
             ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                                                                        });
+                                                                                            });
     </script>
     @{
         <partial name="_ValidationScriptsPartial" />
