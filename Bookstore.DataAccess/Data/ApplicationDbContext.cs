@@ -1,4 +1,5 @@
 using Bookstore.Models.Domain;
+using Bookstore.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ namespace Bookstore.DataAccess.Data
         public DbSet<Product> Products { get; set; }
 
         // We are extending IdentityUser. See Models for the ApplicationUsers class this is tied to
+        // This is used when creating a user in the register.cshtml.cs razopage CreateUser action
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
 
         // This is a configuration settting for Identity

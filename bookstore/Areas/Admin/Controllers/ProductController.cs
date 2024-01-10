@@ -19,7 +19,6 @@ namespace bookstore.Areas.Admin.Controllers
     [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
-
         private readonly IWebHostEnvironment _webHostEnvrionment; // for handling file uploads
         private readonly IUnitOfWork _uow;
         // pass in our db context to construtor of controller

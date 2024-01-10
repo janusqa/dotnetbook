@@ -10,7 +10,7 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
-using Bookstore.Models.Domain;
+using Bookstore.Models.Identity;
 using Bookstore.Utility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
@@ -105,9 +105,22 @@ namespace bookstore.Areas.Identity.Pages.Account
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
 
+            // *** BEGIN CUSTOM FIELDS WE WANT TO ADD FOR A USER
             public string Role { get; set; }
             [ValidateNever]
             public IEnumerable<SelectListItem> RoleList { get; set; }
+
+            [Required]
+            public string Name { get; set; }
+            public string StreetAddress { get; set; }
+            public string City { get; set; }
+            public string State { get; set; }
+            public string PostalCode { get; set; }
+            // Note PhoneNumber is not a property in our ApplicationUser 
+            // It's a field already in the User DB but we want to use it 
+            //so we add it here as well with our other custom fields
+            public string PhoneNumber { get; set; }
+            // *** END CUSTOM FIELDS WE WANT TO ADD FOR A USER
         }
 
 
@@ -156,6 +169,16 @@ namespace bookstore.Areas.Identity.Pages.Account
 
                 await _userStore.SetUserNameAsync(user, Input.Email, CancellationToken.None);
                 await _emailStore.SetEmailAsync(user, Input.Email, CancellationToken.None);
+
+                // *** BEGIN custom code to add custom fields to user db
+                user.StreetAddress = Input.StreetAddress;
+                user.City = Input.City;
+                user.PostalCode = Input.PostalCode;
+                user.State = Input.State;
+                user.PhoneNumber = Input.PhoneNumber;
+                user.Name = Input.Name;
+                // *** END custom code to add custom fields to user db
+
                 var result = await _userManager.CreateAsync(user, Input.Password);
 
                 if (result.Succeeded)

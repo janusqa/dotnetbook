@@ -67,7 +67,7 @@
             2. Create a new class eg. ApplicationUser and inherit it from IdentityUser. Add your customizations to this file. 
             3. Now we need to update the use of IdentityUser in some places
                1. Register.cshtml.cs. Find "private IdentityUser CreateUser()" method and change that and "eturn Activator.CreateInstance<IdentityUser>()" to have "ApplicationUser" instead.
-            4. Add appropriate DbSet to ApplicationDBContext for this class so it maps to a table in the DB and run migrations to update DB
+            4. Add appropriate DbSet to ApplicationDBContext for this class so it maps to the existing users table in the DB and run migrations to update DB
       6. run the following commands to set up -uld (use local database)
          1. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
          2. dotnet add package Microsoft.EntityFrameworkCore.Tools
@@ -208,6 +208,7 @@ dotnet list [<PROJECT>] package
 
 
 IDENTITY ROLES
+Files: ApplicationUser.cs, ApplicationDbContext.cs, programs.cs, Register.cshtml.cs
 ---
 - in program.cs we updated the AddDefalutIdentity and changed it to AddIdentity
 - in register.cshtml.cs we injected the RoleManager
@@ -215,3 +216,9 @@ IDENTITY ROLES
 - Back to register.cshtml.cs OnGetAsync to add some custom code there to add Admin role if it does not exists
 - To avoid email sender error create an EmailSender in Utilites. It will be a mock so we can just get past this error for now.
 - Now add it to program.cs services
+- in order for users to be redirected to proper access denied page or login page update program.cs with "builder.Services.ConfigureApplicationCookie"
+- Adding extra fields to register form should be done in register.cshtml and register.cshtml.cs
+
+Protecting Controllers and Routes
+in controller file can protect entire controller or just an action with..
+ - Authorize[Roles = "Role1,Role2,..."]
