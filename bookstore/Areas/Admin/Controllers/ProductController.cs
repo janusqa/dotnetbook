@@ -304,7 +304,6 @@ namespace bookstore.Areas.Admin.Controllers
             int? entityId = requestBody.GetProperty("entityId").GetInt32();
             if (entityId is null || entityId == 0) return Json(new { success = false, message = "Not found" });
 
-            Console.WriteLine($"Got here -> {entityId}");
             var ImageUrlToDelete = _uow.Products.SqlQuery<string>(@$"
                     SELECT 
                         ImageUrl

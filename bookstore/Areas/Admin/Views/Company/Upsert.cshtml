@@ -1,0 +1,78 @@
+@model Company
+
+<div class="card shadow border-0 mt-4 mb-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">@(Model.Id == 0 ? "Create" : "Update") Company</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p4">
+        <form class="row" method="POST">
+            <input type="hidden" asp-for="@Model.Id" />
+            <div class="border p-3">
+                <div asp-validation-summary="ModelOnly"></div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.Name" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.Name" class="ms-0"></label>
+                    <span asp-validation-for="@Model.Name" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.StreetAddress" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.StreetAddress" class="ms-0"></label>
+                    <span asp-validation-for="@Model.StreetAddress" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.City" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.City" class="ms-0"></label>
+                    <span asp-validation-for="@Model.City" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.State" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.State" class="ms-0"></label>
+                    <span asp-validation-for="@Model.State" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.PostalCode" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.PostalCode" class="ms-0"></label>
+                    <span asp-validation-for="@Model.PostalCode" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.PhoneNumber" class="form-control border-0 shadow" />
+                    <label asp-for="@Model.PhoneNumber" class="ms-0"></label>
+                    <span asp-validation-for="@Model.PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6 col-md-3 p-1">
+                        @if (Model.Id == 0)
+                        {
+                            <button class="btn btn-primary form-control" type="submit">Create</button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-primary form-control" type="submit">Update</button>
+                        }
+                    </div>
+                    <div class="col-6 col-md-3 p-1">
+                        <a class="btn btn-outline-primary border form-control" asp-area="Admin" asp-controller="Company"
+                            asp-action="Index">Companies</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+
+@*
+Add client-side validation in addition to the server-side validation above
+Client-side valididation is implemented using jquery from the partial scripts files
+in the shared views. The syntax below is generally for consuming a partial view.
+*@
+@section Scripts {
+    @{
+        <partial name="_ValidationScriptsPartial" />
+    }
+}
