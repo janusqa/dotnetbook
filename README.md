@@ -222,3 +222,5 @@ Files: ApplicationUser.cs, ApplicationDbContext.cs, programs.cs, Register.cshtml
 Protecting Controllers and Routes
 in controller file can protect entire controller or just an action with..
  - Authorize[Roles = "Role1,Role2,..."]
+ - Set current _layout.chtml in /[<project>]/Areas/Identity/manage/_layout.cshtml.  Set the layout there to point to the shared views "/Views/Shared/_Layout.cshtml"
+ - now copy a _viewStart.cshtml to the manage folder and ajust it's layout line to just point to "_Layout.cshtml"
