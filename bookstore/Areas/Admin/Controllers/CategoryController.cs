@@ -5,10 +5,15 @@ using Bookstore.Models.Domain;
 using Microsoft.IdentityModel.Tokens;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.Data.SqlClient;
+using Microsoft.AspNetCore.Authorization;
+using Bookstore.Utility;
 
 namespace bookstore.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    // this protects this controller from unauthorized roles. 
+    // If we need finer grained control we can apply it instead directly to actions in the controller
+    [Authorize(Roles = SD.Role_Admin)]
     public class CategoryController : Controller
     {
 

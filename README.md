@@ -60,8 +60,14 @@
                 1.  builder.Services.AddRazorPages();
                 2.  app.MapRazorPages();
          2. Now update migrations after adding these packages
-            1. dotnet ef migrations add InitialCreate
-            2. dotnet ef database update
+            1. dotnet ef migration add MyMigration --project YourClassLibraryProjectName --startup-project YourWebAppProjectName
+            2. dotnet ef database update --startup-project path\to\your\startup\project.csproj
+         3. We may want to extend the IdentityUser and what fields it has. Example we may want to  give this user an Address.  
+            1. In Models project add the "dotnet add package Microsoft.Extensions.Identity.Stores --version 8.0.0" 
+            2. Create a new class eg. ApplicationUser and inherit it from IdentityUser. Add your customizations to this file. 
+            3. Now we need to update the use of IdentityUser in some places
+               1. Register.cshtml.cs. Find "private IdentityUser CreateUser()" method and change that and "eturn Activator.CreateInstance<IdentityUser>()" to have "ApplicationUser" instead.
+            4. Add appropriate DbSet to ApplicationDBContext for this class so it maps to a table in the DB and run migrations to update DB
       6. run the following commands to set up -uld (use local database)
          1. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
          2. dotnet add package Microsoft.EntityFrameworkCore.Tools
@@ -199,3 +205,13 @@ dotnet remove [<PROJECT>] package [<PACKAGE>]
 
 // List packages in a project
 dotnet list [<PROJECT>] package 
+
+
+IDENTITY ROLES
+---
+- in program.cs we updated the AddDefalutIdentity and changed it to AddIdentity
+- in register.cshtml.cs we injected the RoleManager
+- In the utilities SD.cs we added some constants for use with roles
+- Back to register.cshtml.cs OnGetAsync to add some custom code there to add Admin role if it does not exists
+- To avoid email sender error create an EmailSender in Utilites. It will be a mock so we can just get past this error for now.
+- Now add it to program.cs services

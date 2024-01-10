@@ -10,10 +10,13 @@ using Bookstore.Models.ViewModels;
 using Microsoft.CodeAnalysis.Elfie.Serialization;
 using Newtonsoft.Json.Linq;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authorization;
+using Bookstore.Utility;
 
 namespace bookstore.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = SD.Role_Admin)]
     public class ProductController : Controller
     {
 

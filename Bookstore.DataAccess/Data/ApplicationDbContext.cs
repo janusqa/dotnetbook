@@ -18,6 +18,9 @@ namespace Bookstore.DataAccess.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<Product> Products { get; set; }
 
+        // We are extending IdentityUser. See Models for the ApplicationUsers class this is tied to
+        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
+
         // This is a configuration settting for Identity
         // use this to seed the Category table with some data if required. 
         // We created this ourselves. It was not there initially.

@@ -144,7 +144,7 @@
                     *@
                     <Select asp-for="Product.CategoryId" asp-items="@Model.CategoryList"
                         class="form-select border-0 shadow">
-                        <Option disable selected>--Select Category--</Option>
+                        <Option disable selected value="">--Select Category--</Option>
                     </Select>
                     <label asp-for="Product.CategoryId" class="ms-0"></label>
                     <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
@@ -215,7 +215,7 @@ in the shared views. The syntax below is generally for consuming a partial view.
             { value: 'Email', title: 'Email' },
         ],
             ai_request: (request, respondWith) => respondWith.string(() => Promise.reject("See docs to implement AI Assistant")),
-                                                                                            });
+                                                                                                });
     </script>
     @{
         <partial name="_ValidationScriptsPartial" />

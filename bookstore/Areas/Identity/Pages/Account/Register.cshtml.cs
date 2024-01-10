@@ -10,12 +10,16 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading;
 using System.Threading.Tasks;
+using Bookstore.Models.Domain;
+using Bookstore.Utility;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 
@@ -25,6 +29,7 @@ namespace bookstore.Areas.Identity.Pages.Account
     {
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager; // we added to work with Identity Roles
         private readonly IUserStore<IdentityUser> _userStore;
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
@@ -32,12 +37,14 @@ namespace bookstore.Areas.Identity.Pages.Account
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
+            RoleManager<IdentityRole> roleManager, // we added to confirgure Identity Roles
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender)
         {
             _userManager = userManager;
+            _roleManager = roleManager; // we added to confirgure Identity Roles
             _userStore = userStore;
             _emailStore = GetEmailStore();
             _signInManager = signInManager;
@@ -97,11 +104,44 @@ namespace bookstore.Areas.Identity.Pages.Account
             [Display(Name = "Confirm password")]
             [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
             public string ConfirmPassword { get; set; }
+
+            public string Role { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> RoleList { get; set; }
         }
 
 
         public async Task OnGetAsync(string returnUrl = null)
         {
+            // ** BEGIN CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
+            var roles = new List<string> {
+                SD.Role_Customer,
+                SD.Role_Company,
+                SD.Role_Admin,
+                SD.Role_Employee,
+            };
+
+            var CreateRolesTask = roles
+                .Where(r => !_roleManager.RoleExistsAsync(r).GetAwaiter().GetResult())
+                .ToList();
+
+            foreach (var task in CreateRolesTask)
+            {
+                await _roleManager.CreateAsync(new IdentityRole(task));
+            }
+
+            Input = new InputModel
+            {
+                RoleList =
+                    _roleManager.Roles
+                    .Select(r => new SelectListItem
+                    {
+                        Text = r.Name,
+                        Value = r.Name
+                    })
+            };
+            // ** END CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
+
             ReturnUrl = returnUrl;
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
@@ -121,6 +161,20 @@ namespace bookstore.Areas.Identity.Pages.Account
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
+
+                    // *** BEGIN CUSTOM CODE TO ASSIGN A USER TO A ROLE WHEN THEY REGISTER
+                    // *** FOR DEMO ONLY. USER CHOOSES ROLE WHEN REGISTERING. JUST FOR TESTING
+                    // *** IN PRODUCTING USER SHOULD BE GIVEN A DEFALUT ROLE AND THEN ADMIN SHOULD
+                    // *** THEN FURTHER ASSIGN FINAL ROLE
+                    if (Input.Role is not null && Input.Role != "")
+                    {
+                        await _userManager.AddToRoleAsync(user, Input.Role);
+                    }
+                    else
+                    {
+                        await _userManager.AddToRoleAsync(user, SD.Role_Customer);
+                    }
+                    // *** END CUSTOM CODE TO ASSIGN A USER TO A ROLE
 
                     var userId = await _userManager.GetUserIdAsync(user);
                     var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -154,11 +208,13 @@ namespace bookstore.Areas.Identity.Pages.Account
             return Page();
         }
 
-        private IdentityUser CreateUser()
+        // private IdentityUser CreateUser()
+        private ApplicationUser CreateUser()
         {
             try
             {
-                return Activator.CreateInstance<IdentityUser>();
+                // return Activator.CreateInstance<IdentityUser>();
+                return Activator.CreateInstance<ApplicationUser>(); // updated so we can customize info we collected on a user 
             }
             catch
             {
