@@ -25,6 +25,8 @@ namespace Bookstore.DataAccess.Data
 
         public DbSet<Company> Companies { get; set; }
 
+        public DbSet<ShoppingCart> ShoppingCarts { get; set; }
+
         // This is a configuration settting for Identity
         // use this to seed the Category table with some data if required. 
         // We created this ourselves. It was not there initially.
