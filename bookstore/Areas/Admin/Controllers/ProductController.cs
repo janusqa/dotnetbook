@@ -73,7 +73,7 @@ namespace bookstore.Areas.Admin.Controllers
                 : _uow.Products
                 .FromSql($@"
                     SELECT * FROM dbo.Products
-                    WHERE Id = @Id
+                    WHERE Id = @Id;
                 ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
 
             if (product is null) return NotFound();
