@@ -11,6 +11,7 @@ namespace BookStore.DataAccess.Repository
         public IProductRepository Products { get; init; }
         public ICompanyRepository Companies { get; init; }
         public IShoppingCartRepository ShoppingCarts { get; init; }
+        public IApplicationUserRepository ApplicationUsers { get; init; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -20,6 +21,7 @@ namespace BookStore.DataAccess.Repository
             Products = new ProductRepository(_db);
             Companies = new CompanyRepository(_db);
             ShoppingCarts = new ShoppingCartRepository(_db);
+            ApplicationUsers = new ApplicationUserRepository(_db);
         }
 
         public int Complete()

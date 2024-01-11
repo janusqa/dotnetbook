@@ -8,6 +8,7 @@ namespace BookStore.DataAccess.UnitOfWork.IUnitOfWork
         IProductRepository Products { get; init; }
         ICompanyRepository Companies { get; init; }
         IShoppingCartRepository ShoppingCarts { get; init; }
+        IApplicationUserRepository ApplicationUsers { get; init; }
 
         int Complete();
     }
