@@ -59,6 +59,45 @@ namespace bookstore.Areas.Customer.Controllers
             return View(ShoppingCartView);
         }
 
+        public IActionResult Increase(int entityId)
+        {
+            _uow.ShoppingCarts.ExecuteSql($@"
+                UPDATE ShoppingCarts SET Count = Count + 1 WHERE (Id = @Id) AND Count < 1001;
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Decrease(int entityId)
+        {
+            _uow.ShoppingCarts.ExecuteSql($@"
+                UPDATE ShoppingCarts SET Count = Count - 1 WHERE (Id = @Id) AND (Count > 1);
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Remove(int entityId)
+        {
+
+            _uow.ShoppingCarts.ExecuteSql($@"
+                DELETE FROM ShoppingCarts WHERE (Id = @Id);
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Summary()
+        {
+            return View(ShoppingCartView);
+        }
+
         private static double GetPriceBasedOnQuantity(ShoppingCart sc)
         {
             var price = sc.Count > 100
