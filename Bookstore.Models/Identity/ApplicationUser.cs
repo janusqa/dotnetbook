@@ -1,5 +1,8 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Bookstore.Models.Domain;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Bookstore.Models.Identity
 {
@@ -16,5 +19,13 @@ namespace Bookstore.Models.Identity
         public string? State { get; set; }
         [Display(Name = "Postal Code")]
         public string? PostalCode { get; set; }
+
+        // Add CompanyId as a foreign key to the User table
+        // Make it nullable as not all users belong to a company
+        [Display(Name = "Company")]
+        public int? CompanyId { get; set; }
+        [ForeignKey("CompanyId")]
+        [ValidateNever] // this field will not be populated when creating a user so we can skip validation for now
+        public Company? Company { get; set; }
     }
 }

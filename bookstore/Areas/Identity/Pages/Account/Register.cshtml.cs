@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Bookstore.Models.Identity;
 using Bookstore.Utility;
+using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -34,6 +35,7 @@ namespace bookstore.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly IUnitOfWork _uow;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
@@ -41,7 +43,9 @@ namespace bookstore.Areas.Identity.Pages.Account
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            IUnitOfWork uow
+        )
         {
             _userManager = userManager;
             _roleManager = roleManager; // we added to confirgure Identity Roles
@@ -50,6 +54,7 @@ namespace bookstore.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _uow = uow;
         }
 
         /// <summary>
@@ -120,6 +125,9 @@ namespace bookstore.Areas.Identity.Pages.Account
             // It's a field already in the User DB but we want to use it 
             //so we add it here as well with our other custom fields
             public string PhoneNumber { get; set; }
+            public int? CompanyId { get; set; }
+            [ValidateNever]
+            public IEnumerable<SelectListItem> CompanyList { get; set; }
             // *** END CUSTOM FIELDS WE WANT TO ADD FOR A USER
         }
 
@@ -151,7 +159,15 @@ namespace bookstore.Areas.Identity.Pages.Account
                     {
                         Text = r.Name,
                         Value = r.Name
-                    })
+                    }),
+
+                CompanyList = _uow.Companies.FromSql($@"
+                    SELECT * FROM dbo.Companies;
+                ", []).Select(c => new SelectListItem
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                })
             };
             // ** END CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
 
@@ -177,6 +193,7 @@ namespace bookstore.Areas.Identity.Pages.Account
                 user.State = Input.State;
                 user.PhoneNumber = Input.PhoneNumber;
                 user.Name = Input.Name;
+                if (Input.Role == SD.Role_Company) user.CompanyId = Input.CompanyId;
                 // *** END custom code to add custom fields to user db
 
                 var result = await _userManager.CreateAsync(user, Input.Password);
@@ -226,6 +243,27 @@ namespace bookstore.Areas.Identity.Pages.Account
                     ModelState.AddModelError(string.Empty, error.Description);
                 }
             }
+
+            // ** BEGIN CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
+            Input = new InputModel
+            {
+                RoleList =
+                    _roleManager.Roles
+                    .Select(r => new SelectListItem
+                    {
+                        Text = r.Name,
+                        Value = r.Name
+                    }),
+
+                CompanyList = _uow.Companies.FromSql($@"
+                    SELECT * FROM dbo.Companies;
+                ", []).Select(c => new SelectListItem
+                {
+                    Text = c.Name,
+                    Value = c.Id.ToString()
+                })
+            };
+            // ** END CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
 
             // If we got this far, something failed, redisplay form
             return Page();

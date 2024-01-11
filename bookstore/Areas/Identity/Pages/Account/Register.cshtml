@@ -71,6 +71,12 @@
                             <Option disable selected value="">--Select Role--</Option>
                         </Select>
                     </div>
+                    <div class="form-floating mb-3 col-md-6">
+                        <Select asp-for="Input.CompanyId" asp-items="@Model.Input.CompanyList" class="form-select"
+                            style="display:none;">
+                            <Option disable selected value="">--Select Company--</Option>
+                        </Select>
+                    </div>
                     <div class="col-md-12">
                         <button id="registerSubmit" type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
                     </div>
@@ -116,5 +122,30 @@
 </div>
 
 @section Scripts {
+    <script type="text/javascript">
+        let roleSelect;
+
+        const onRoleChange = (event) => {
+            if (event.target.value === 'Company') {
+                document.getElementById("Input_CompanyId").style.display = "inline-block";
+            } else {
+                document.getElementById("Input_CompanyId").style.display = "none";
+            }
+        }
+
+        const ready = () => {
+            roleSelect = document.getElementById("Input_Role");
+            roleSelect.addEventListener("change", onRoleChange);
+        }
+
+        const cleanUp = () => {
+            roleSelect.removeEventListener("change", onRoleChange);
+            document.removeEventListener("DOMContentLoaded", ready);
+            console.log("cleaned!!!")
+        }
+
+        document.addEventListener("DOMContentLoaded", ready);
+        window.addEventListener("beforeunload", cleanUp); 
+    </script>
     <partial name="_ValidationScriptsPartial" />
 }
