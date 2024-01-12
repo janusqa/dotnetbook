@@ -15,7 +15,7 @@ namespace bookstore.Areas.Customer.Controllers
     public class CartController : Controller
     {
         private readonly IUnitOfWork _uow;
-        private ShoppingCartViewModel? ShoppingCartView { get; set; }
+        // private ShoppingCartViewModel? ShoppingCartView { get; set; }
 
         public CartController(IUnitOfWork uow)
         {
@@ -23,6 +23,63 @@ namespace bookstore.Areas.Customer.Controllers
         }
 
         public IActionResult Index()
+        {
+            return View(GetShoppingCartViewModel());
+        }
+
+        public IActionResult Increase(int entityId)
+        {
+            _uow.ShoppingCarts.ExecuteSql($@"
+                UPDATE dbo.ShoppingCarts SET Count = Count + 1 WHERE (Id = @Id) AND Count < 1001;
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Decrease(int entityId)
+        {
+            _uow.ShoppingCarts.ExecuteSql($@"
+                UPDATE dbo.ShoppingCarts SET Count = Count - 1 WHERE (Id = @Id) AND (Count > 1);
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Remove(int entityId)
+        {
+
+            _uow.ShoppingCarts.ExecuteSql($@"
+                DELETE FROM dbo.ShoppingCarts WHERE (Id = @Id);
+            ", [
+                new SqlParameter("Id", entityId),
+            ]);
+
+            return RedirectToAction(nameof(Index), "Cart");
+        }
+
+        public IActionResult Summary()
+        {
+            var ShoppingCartView = GetShoppingCartViewModel();
+
+            ShoppingCartView.OrderHeader.ApplicationUser = _uow.ApplicationUsers.FromSql($@"
+                SELECT * FROM dbo.AspNetUsers WHERE Id = @Id
+            ", [new SqlParameter("Id", ShoppingCartView.OrderHeader.ApplicationUserId)]).FirstOrDefault();
+
+            ShoppingCartView.OrderHeader.Name = ShoppingCartView.OrderHeader.ApplicationUser?.Name;
+            ShoppingCartView.OrderHeader.PhoneNumber = ShoppingCartView.OrderHeader.ApplicationUser?.PhoneNumber;
+            ShoppingCartView.OrderHeader.StreetAddress = ShoppingCartView.OrderHeader.ApplicationUser?.StreetAddress;
+            ShoppingCartView.OrderHeader.City = ShoppingCartView.OrderHeader.ApplicationUser?.City;
+            ShoppingCartView.OrderHeader.State = ShoppingCartView.OrderHeader.ApplicationUser?.State;
+            ShoppingCartView.OrderHeader.PostalCode = ShoppingCartView.OrderHeader.ApplicationUser?.PostalCode;
+
+            return View(ShoppingCartView);
+        }
+
+        private ShoppingCartViewModel GetShoppingCartViewModel()
         {
             var claimsIdentity = User.Identity as ClaimsIdentity;
             var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -54,48 +111,11 @@ namespace bookstore.Areas.Customer.Controllers
 
             var OrderTotal = shoppingCartList.Select(GetPriceBasedOnQuantity).Sum();
 
-            var ShoppingCartView = new ShoppingCartViewModel { ShoppingCartList = shoppingCartList, OrderTotal = OrderTotal };
+            var ShoppingCartView = new ShoppingCartViewModel(shoppingCartList);
+            ShoppingCartView.OrderHeader.OrderTotal = OrderTotal;
+            ShoppingCartView.OrderHeader.ApplicationUserId = userId;
 
-            return View(ShoppingCartView);
-        }
-
-        public IActionResult Increase(int entityId)
-        {
-            _uow.ShoppingCarts.ExecuteSql($@"
-                UPDATE ShoppingCarts SET Count = Count + 1 WHERE (Id = @Id) AND Count < 1001;
-            ", [
-                new SqlParameter("Id", entityId),
-            ]);
-
-            return RedirectToAction(nameof(Index), "Cart");
-        }
-
-        public IActionResult Decrease(int entityId)
-        {
-            _uow.ShoppingCarts.ExecuteSql($@"
-                UPDATE ShoppingCarts SET Count = Count - 1 WHERE (Id = @Id) AND (Count > 1);
-            ", [
-                new SqlParameter("Id", entityId),
-            ]);
-
-            return RedirectToAction(nameof(Index), "Cart");
-        }
-
-        public IActionResult Remove(int entityId)
-        {
-
-            _uow.ShoppingCarts.ExecuteSql($@"
-                DELETE FROM ShoppingCarts WHERE (Id = @Id);
-            ", [
-                new SqlParameter("Id", entityId),
-            ]);
-
-            return RedirectToAction(nameof(Index), "Cart");
-        }
-
-        public IActionResult Summary()
-        {
-            return View(ShoppingCartView);
+            return ShoppingCartView;
         }
 
         private static double GetPriceBasedOnQuantity(ShoppingCart sc)

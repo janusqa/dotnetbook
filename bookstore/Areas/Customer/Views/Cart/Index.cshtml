@@ -77,7 +77,7 @@
                         <ul class="list-group mb-4">
                             <li class="d-flex justify-content-between align-items-center">
                                 <h5 class="text-dark fw-semibold text-uppercase"> Total (USD)</h5>
-                                <h4 class="text-dark fw-bolder">@Model.OrderTotal.ToString("c")</h4>
+                                <h4 class="text-dark fw-bolder">@Model.OrderHeader.OrderTotal.ToString("c")</h4>
                             </li>
                         </ul>
                     </div>
@@ -85,7 +85,7 @@
                 <div class="row">
                     <div class="col-md-2 offset-md-5">
                          <a asp-area="Customer" asp-controller="Cart" asp-action="Summary"
-                        class="btn btn-primary border-0 bg-gradient w-100 py-2">Summary</a>
+                        class="btn btn-primary border-0 bg-gradient w-100 py-2">Place Order</a>
                     </div>
                 </div>
             </div>

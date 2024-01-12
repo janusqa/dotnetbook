@@ -13,10 +13,14 @@ namespace Bookstore.Models.Identity
     {
         [Required]
         public string? Name { get; set; }
+
         [Display(Name = "Street Address")]
         public string? StreetAddress { get; set; }
+
         public string? City { get; set; }
+
         public string? State { get; set; }
+
         [Display(Name = "Postal Code")]
         public string? PostalCode { get; set; }
 
@@ -24,6 +28,7 @@ namespace Bookstore.Models.Identity
         // Make it nullable as not all users belong to a company
         [Display(Name = "Company")]
         public int? CompanyId { get; set; }
+
         [ForeignKey("CompanyId")]
         [ValidateNever] // this field will not be populated when creating a user so we can skip validation for now
         public Company? Company { get; set; }

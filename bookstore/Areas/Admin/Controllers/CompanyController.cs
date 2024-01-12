@@ -49,7 +49,7 @@ namespace bookstore.Areas.Admin.Controllers
             if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
             {
                 _uow.Companies.ExecuteSql(@"
-                        MERGE INTO Companies AS target
+                        MERGE INTO dbo.Companies AS target
                         USING 
                             (
                                 VALUES (@Id, @Name, @StreetAddress, @City, @State, @PostalCode, @PhoneNumber)

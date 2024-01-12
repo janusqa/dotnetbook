@@ -109,7 +109,7 @@ public class HomeController : Controller
         if (ModelState.IsValid)
         {
             _uow.ShoppingCarts.ExecuteSql(@"
-                MERGE INTO ShoppingCarts AS target
+                MERGE INTO dbo.ShoppingCarts AS target
                 USING 
                     (
                         VALUES (@Id, @ApplicationUserId, @ProductId, @Count)

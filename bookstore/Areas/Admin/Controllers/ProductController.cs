@@ -164,7 +164,7 @@ namespace bookstore.Areas.Admin.Controllers
                 }
 
                 _uow.Products.ExecuteSql(@"
-                        MERGE INTO Products AS target
+                        MERGE INTO dbo.Products AS target
                         USING 
                             (
                                 VALUES (@Id, @Title, @Description, @ISBN, @Author, @ListPrice, @Price, @Price50, @Price100, @CategoryId, @ImageUrl)
