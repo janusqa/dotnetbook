@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Bookstore.Utility;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +51,12 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+// ***BEGIN CUSTOM CONFIG FOR SECRETS
+// API KEYS STORE IN SECRETS (dotnet user-secrets init)
+// Stripe Config
+StripeConfiguration.ApiKey = StripeSettings.SecretKey;
+// ***END CUSTOM CONFIT FOR SECRETS
 
 app.UseRouting();
 

@@ -206,6 +206,12 @@ dotnet remove [<PROJECT>] package [<PACKAGE>]
 // List packages in a project
 dotnet list [<PROJECT>] package 
 
+SECRETS
+-------
+dotnet user-secrets --project [<projectname>]init
+dotnet user-secrets --project [<projectname>] set "ApiKey" "your-api-key"
+var apiKey = Configuration["ApiKey"];
+
 
 IDENTITY ROLES
 Files: ApplicationUser.cs, ApplicationDbContext.cs, programs.cs, Register.cshtml.cs
