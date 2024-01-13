@@ -275,7 +275,7 @@ namespace bookstore.Areas.Customer.Controllers
         public IActionResult OrderConfirmation(int entityId)
         {
             var orderHeader = _uow.OrderHeaders.FromSql($@"
-                SELECT * FROM OrderHeaders WHERE Id = @Id
+                SELECT * FROM dbo.OrderHeaders WHERE Id = @Id
             ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
 
             if (orderHeader is not null)
@@ -351,7 +351,7 @@ namespace bookstore.Areas.Customer.Controllers
 
             var shoppingCartList = _uow.ShoppingCarts.FromSql($@"
                 SELECT * 
-                FROM ShoppingCarts
+                FROM dbo.ShoppingCarts
                 WHERE (ApplicationUserId = @ApplicationUserId)
             ", [new SqlParameter("ApplicationUserId", userId)]);
 
@@ -378,7 +378,7 @@ namespace bookstore.Areas.Customer.Controllers
             }
             var products = _uow.Products.FromSql($@"
                 SELECT * 
-                FROM Products
+                FROM dbo.Products
                 WHERE Id IN ({inParams.ToString()[..^1]});
             ", sqlParams).ToDictionary(p => p.Id, p => p);
 
