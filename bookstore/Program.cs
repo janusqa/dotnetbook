@@ -3,10 +3,8 @@ using BookStore.DataAccess.Repository;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Bookstore.Utility;
-using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,7 +53,7 @@ app.UseStaticFiles();
 // ***BEGIN CUSTOM CONFIG FOR SECRETS
 // API KEYS STORE IN SECRETS (dotnet user-secrets init)
 // Stripe Config
-StripeConfiguration.ApiKey = StripeSettings.SecretKey;
+Stripe.StripeConfiguration.ApiKey = builder.Configuration.GetValue<string>("StripeSecretKey");
 // ***END CUSTOM CONFIT FOR SECRETS
 
 app.UseRouting();

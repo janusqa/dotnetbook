@@ -7,7 +7,8 @@ using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Stripe.BillingPortal;
+using Stripe.Checkout;
 
 namespace bookstore.Areas.Customer.Controllers
 {
@@ -91,7 +92,6 @@ namespace bookstore.Areas.Customer.Controllers
             var OrderSummary = GetShoppingCart();
 
             if (OrderSummary?.ShoppingCartList.ToList().Count == 0) return View(OrderSummary);
-
             if (OrderSummary is null || OrderSummary.OrderHeader is null) return NotFound();
 
             ModelState.Remove("ShoppingCartList");
@@ -181,8 +181,7 @@ namespace bookstore.Areas.Customer.Controllers
             {
                 var inParams = new StringBuilder();
                 var sqlParams = new List<SqlParameter>();
-                var delInParams = new StringBuilder();
-                var delSqlParams = new List<SqlParameter>();
+
                 foreach (var (sc, idx) in OrderSummary.ShoppingCartList.Select((sc, idx) => (sc, idx)))
                 {
                     inParams.Append($"(@OrderHeaderId{idx}, @ProductId{idx}, @Count{idx}, @Price{idx}),");
@@ -190,9 +189,6 @@ namespace bookstore.Areas.Customer.Controllers
                     sqlParams.Add(new SqlParameter($"ProductId{idx}", sc.ProductId));
                     sqlParams.Add(new SqlParameter($"Count{idx}", sc.Count));
                     sqlParams.Add(new SqlParameter($"Price{idx}", GetPriceBasedOnQuantity(sc)));
-
-                    delInParams.Append($"@Id{idx},");
-                    delSqlParams.Add(new SqlParameter($"Id{idx}", sc.Id));
                 }
 
                 _uow.OrderDetails.ExecuteSql($@"
@@ -201,16 +197,69 @@ namespace bookstore.Areas.Customer.Controllers
                     VALUES {inParams.ToString()[..^1]}
                 ", sqlParams);
 
-                _uow.ShoppingCarts.ExecuteSql($@"
-                    DELETE FROM dbo.ShoppingCarts
-                    WHERE Id IN ({delInParams.ToString()[..^1]}) 
-                ", delSqlParams);
-
-                transaction.Commit();
-
                 if (OrderSummary.OrderHeader.ApplicationUser?.CompanyId.GetValueOrDefault() == 0)
                 {
-                    // TODO: collect payment via stripe
+                    // This is a non-company transaction so beging payment processing
+                    // if it fails rollback, otherwise commit the order
+                    var baseUrl = @"https://localhost:7125";
+
+                    // Stripe
+                    var options = new Stripe.Checkout.SessionCreateOptions
+                    {
+                        SuccessUrl = $"{baseUrl}/Customer/Cart/OrderConfirmation?entityId={OrderHeaderId}",
+                        CancelUrl = $"{baseUrl}/Customer/Cart/Index",
+                        LineItems = new List<Stripe.Checkout.SessionLineItemOptions>(),
+                        Mode = "payment",
+                    };
+                    foreach (var item in OrderSummary.ShoppingCartList)
+                    {
+                        options.LineItems.Add(
+                            new Stripe.Checkout.SessionLineItemOptions
+                            {
+                                PriceData = new Stripe.Checkout.SessionLineItemPriceDataOptions
+                                {
+                                    UnitAmount = (long)(GetPriceBasedOnQuantity(item) * 100),
+                                    Currency = "usd",
+                                    ProductData = new Stripe.Checkout.SessionLineItemPriceDataProductDataOptions
+                                    {
+                                        Name = item.Product.Title
+                                    }
+                                },
+                                Quantity = item.Count
+                            }
+                        );
+                    }
+
+                    var service = new Stripe.Checkout.SessionService();
+                    var session = service.Create(options);
+
+                    if (session is not null)
+                    {
+                        _uow.OrderHeaders.ExecuteSql($@"
+                            UPDATE dbo.OrderHeaders
+                            SET 
+                                SessionId = @SessionId
+                            WHERE Id = @Id
+                        ", [
+                            new SqlParameter("Id", OrderHeaderId),
+                            new SqlParameter("SessionId", session.Id),
+                        ]);
+
+                        transaction.Commit();
+
+                        Response.Headers.Append("Location", session.Url);
+                        return new StatusCodeResult(303); // redirect to stipe to process payment
+                    }
+                    else
+                    {
+                        transaction.Rollback();
+                    }
+                }
+                else
+                {
+                    // This is a Company order so we do not try to get payment immediately
+                    // log purchase order and proceed
+                    transaction.Commit();
                 }
             }
             else
@@ -225,6 +274,71 @@ namespace bookstore.Areas.Customer.Controllers
 
         public IActionResult OrderConfirmation(int entityId)
         {
+            var orderHeader = _uow.OrderHeaders.FromSql($@"
+                SELECT * FROM OrderHeaders WHERE Id = @Id
+            ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
+
+            if (orderHeader is not null)
+            {
+                using var transaction = _uow.Context().BeginTransaction();
+
+                // On a successful order clear cart
+                var order = GetShoppingCart();
+                if (order is not null)
+                {
+                    var inParams = new StringBuilder();
+                    var sqlParams = new List<SqlParameter>();
+                    foreach (var (sc, idx) in order.ShoppingCartList.Select((sc, idx) => (sc, idx)))
+                    {
+                        inParams.Append($"@Id{idx},");
+                        sqlParams.Add(new SqlParameter($"Id{idx}", sc.Id));
+                    }
+
+                    _uow.ShoppingCarts.ExecuteSql($@"
+                            DELETE FROM dbo.ShoppingCarts
+                            WHERE Id IN ({inParams.ToString()[..^1]}) 
+                        ", sqlParams);
+                }
+
+                if (orderHeader.PaymentStatus != SD.PaymentStatusApprovedDelayedPayment)
+                {
+                    // we need to complete processing of a customer/stripe payment
+                    var service = new Stripe.Checkout.SessionService();
+                    var session = service.Get(orderHeader.SessionId);
+                    if (session.PaymentStatus.Equals("paid", StringComparison.CurrentCultureIgnoreCase))
+                    {
+                        _uow.OrderHeaders.ExecuteSql($@"
+                            UPDATE dbo.OrderHeaders
+                            SET 
+                                SessionId = @SessionId,
+                                PaymentIntentId = @PaymentIntentId,
+                                PaymentStatus = @PaymentStatus,
+                                OrderStatus = @OrderStatus,
+                                PaymentDate = @PaymentDate
+                            WHERE Id = @Id
+                        ", [
+                            new SqlParameter("Id", entityId),
+                            new SqlParameter("SessionId", session.Id),
+                            new SqlParameter("PaymentIntentId", session.PaymentIntentId),
+                            new SqlParameter("PaymentStatus", SD.PaymentStatusApproved),
+                            new SqlParameter("OrderStatus", SD.OrderStatusApproved),
+                            new SqlParameter("PaymentDate", DateTime.Now),
+                        ]);
+
+                        transaction.Commit();
+                    }
+                    else
+                    {
+                        transaction.Rollback();
+                        // TODO: display some kind of failed transaction message
+                    }
+                }
+            }
+            else
+            {
+                // TODO: display some kind of failed transaction message
+            }
+
             return View(entityId);
         }
 

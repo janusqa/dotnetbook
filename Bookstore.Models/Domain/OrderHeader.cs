@@ -32,7 +32,8 @@ namespace Bookstore.Models.Domain
 
         public DateOnly? PaymentDue { get; set; }
 
-        public string? PaymentIntentId { get; set; }
+        public string? PaymentIntentId { get; set; }  // stripe payment gateway
+        public string? SessionId { get; set; } // stripe payment gateway
 
         [Required]
         public string? Name { get; set; }
