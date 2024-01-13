@@ -1,5 +1,6 @@
 using Bookstore.DataAccess.Data;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BookStore.DataAccess.Repository
 {
@@ -37,5 +38,8 @@ namespace BookStore.DataAccess.Repository
         {
             _db.Dispose();
         }
+
+        public DatabaseFacade Context() => _db.Database;
+
     }
 }

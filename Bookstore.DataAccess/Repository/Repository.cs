@@ -61,9 +61,8 @@ namespace BookStore.DataAccess.Repository
             _db.Database.ExecuteSqlRaw(sql, sqlParameters.ToArray());
         }
 
-        public IEnumerable<U>? SqlQuery<U>(string sql, List<SqlParameter> sqlParameters)
-        {
-            return _db.Database.SqlQueryRaw<U>(sql, sqlParameters.ToArray()).ToList();
-        }
+        public IEnumerable<U>? SqlQuery<U>(string sql, List<SqlParameter> sqlParameters) =>
+            [.. _db.Database.SqlQueryRaw<U>(sql, sqlParameters.ToArray())];
+
     }
 }

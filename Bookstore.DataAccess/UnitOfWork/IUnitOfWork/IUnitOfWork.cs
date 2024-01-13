@@ -1,4 +1,5 @@
 using BookStore.DataAccess.Repository;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace BookStore.DataAccess.UnitOfWork.IUnitOfWork
 {
@@ -13,5 +14,7 @@ namespace BookStore.DataAccess.UnitOfWork.IUnitOfWork
         IOrderDetailRepository OrderDetails { get; init; }
 
         int Complete();
+
+        DatabaseFacade Context();
     }
 }

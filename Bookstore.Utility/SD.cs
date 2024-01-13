@@ -9,17 +9,17 @@ namespace Bookstore.Utility
         public const string Role_Employee = "Employee";
 
         // Order Status Constants
-        public const string StatusPending = "Pending";
-        public const string StatusApproved = "Approved";
-        public const string StatusInProcess = "Processing";
-        public const string StatusShipped = "Shipped";
-        public const string StatusCancelled = "Cancelled";
-        public const string StatusRefunded = "Refunded";
+        public const string OrderStatusPending = "Pending";
+        public const string OrderStatusApproved = "Approved";
+        public const string SOrdertatusInProcess = "Processing";
+        public const string OrderStatusShipped = "Shipped";
+        public const string OrderStatusCancelled = "Cancelled";
+        public const string OrderStatusRefunded = "Refunded";
 
         // Order Payment Status Constants
         public const string PaymentStatusPending = "Pending";
         public const string PaymentStatusApproved = "Approved";
-        public const string PaymentStatusDelayedPayment = "ApprovedForDelayedPayment";
+        public const string PaymentStatusApprovedDelayedPayment = "ApprovedForDelayedPayment";
         public const string PaymentStatusRejected = "Rejected";
     }
 }
