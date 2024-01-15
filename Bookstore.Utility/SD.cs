@@ -23,5 +23,8 @@ namespace Bookstore.Utility
         public const string PaymentStatusRefunded = "Refunded";
         public const string PaymentStatusCancelled = "Cancelled";
 
+        // sessions management
+        public const string SessionCart = "SessionShoppingCart";
+
     }
 }

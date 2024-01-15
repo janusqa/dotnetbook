@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Globalization;
+using Bookstore.Utility;
 
 namespace bookstore.Areas.Customer.Controllers;
 
@@ -26,6 +27,18 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
+        // we need to store the number of distince user items a user has in a session so we can display it in 
+        // header of site.  We must make a database call to get the number of items in cart for this logged in user
+        var claimsIdentity = User.Identity as ClaimsIdentity;
+        var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (userId is not null && HttpContext.Session.GetInt32(SD.SessionCart) is null)
+        {
+            var itemCount = _uow.ShoppingCarts.SqlQuery<int>($@"
+                SELECT COUNT(Id) FROM dbo.ShoppingCarts WHERE ApplicationUserId = @ApplicationUserId
+            ", [new SqlParameter("ApplicationUserId", userId)])?.FirstOrDefault();
+            HttpContext.Session.SetInt32(SD.SessionCart, itemCount ?? 0);
+        }
+
         var productList = _uow.Products
             .SqlQuery<ProductWithCategory>(@$"
                 SELECT 
@@ -127,10 +140,21 @@ public class HomeController : Controller
                     new SqlParameter("ProductId", cart.ProductId),
                     new SqlParameter("Count", cart.Count),
                 ]);
+
+            // we need to store the number of distince user items a user has in a session so we can display it in 
+            // header of site.  We must make a database call to get the number of items in cart for this logged in user
+            var itemCount = _uow.ShoppingCarts.SqlQuery<int>($@"
+                SELECT COUNT(Id) FROM dbo.ShoppingCarts WHERE ApplicationUserId = @ApplicationUserId
+            ", [new SqlParameter("ApplicationUserId", cart.ApplicationUserId)])?.FirstOrDefault();
+            HttpContext.Session.SetInt32(SD.SessionCart, itemCount ?? 0);
+
             TempData["success"] = $"Shopping Cart updated successfully"; // used for passing data in the next rendered page.
             return RedirectToAction(nameof(Index), "Home"); // redirects to the specified ACTION of secified CONTROLLER
         }
 
+        // if adding to cart fields we need to retrieve product info again to display on details
+        // because this detail product information would not be available otherwise when the page reloads
+        // after fail vailidation.
         var product = _uow.Products
                 .SqlQuery<ProductWithCategory>(@$"
                     SELECT 

@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -65,7 +68,8 @@
                         }
                         <li class="nav-item">
                             <a class="nav-link" asp-area="Customer" asp-controller="Cart" asp-action="Index"><i
-                                    class="bi bi-cart"></i>&nbsp;(0)</a>
+                                    class="bi bi-cart"></i>&nbsp;(@(HttpContextAccessor.HttpContext?.Session.GetInt32(SD.SessionCart)
+                                is not null ? HttpContextAccessor.HttpContext.Session.GetInt32(SD.SessionCart) : 0))</a>
                     </ul>
                     <partial name="_LoginPartial" />
                 </div>

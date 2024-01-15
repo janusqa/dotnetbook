@@ -230,3 +230,53 @@ in controller file can protect entire controller or just an action with..
  - Authorize[Roles = "Role1,Role2,..."]
  - Set current _layout.chtml in /[<project>]/Areas/Identity/manage/_layout.cshtml.  Set the layout there to point to the shared views "/Views/Shared/_Layout.cshtml"
  - now copy a _viewStart.cshtml to the manage folder and ajust it's layout line to just point to "_Layout.cshtml"
+
+Configure Sessions
+----
+1.
+in program.cs below AddIdentity and ConfigureAplicationCookie
+```
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options => {
+   options.IdleTimeout = TimeSpan.FromMinutes(100);
+   options.Cookie.HttpOnly = true;
+   options.Cookie.IsEssential = true;
+});
+```
+2.
+Still in program.cs need to add to the request pipeline.
+i.e add "app.UseSession()" after "app.UseAuthorization()"
+
+3.
+To use set up a constant holding a string value of your choice. 
+Sessions are key/value pair, and this sting is the key by which to access the session by 
+
+For instance in SD.cs 
+```
+public const string SessionCart = "SessionShoppingCart";
+
+```
+Now use it eg.
+```
+HttpContext.Session.SetInt32(SD.SessionCart, itemCount ?? 0);
+```
+
+4.
+Now to use it in cshtml pages at top of page put
+```
+@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+```
+and use it for example
+```
+@(HttpContextAccessor.HttpContext?.Session.GetInt32(SD.SessionCart)
+                                is not null ? HttpContextAccessor.HttpContext.Session.GetInt32(SD.SessionCart) : 0)
+```
+
+5.
+If your application requires it clear session when logging out
+Open logout.cshtml.cs in Areas/Identity/Account and below  "_signInManager.SignOutAsync" 
+clear the session with "HttpContext.Session.Clear();"
+
+You may also need to intilize a session with info when logging in for example you may want to set 
+the number of items in the logged in users cart so it can be displayed in some header.

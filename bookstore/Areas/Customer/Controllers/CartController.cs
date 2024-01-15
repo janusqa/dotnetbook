@@ -63,6 +63,15 @@ namespace bookstore.Areas.Customer.Controllers
                 new SqlParameter("Id", entityId),
             ]);
 
+            // we need to store the number of distince user items a user has in a session so we can display it in 
+            // header of site.  We must make a database call to get the number of items in cart for this logged in user
+            var claimsIdentity = User.Identity as ClaimsIdentity;
+            var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var itemCount = _uow.ShoppingCarts.SqlQuery<int>($@"
+                SELECT COUNT(Id) FROM dbo.ShoppingCarts WHERE ApplicationUserId = @ApplicationUserId
+            ", [new SqlParameter("ApplicationUserId", userId)])?.FirstOrDefault();
+            HttpContext.Session.SetInt32(SD.SessionCart, itemCount ?? 0);
+
             return RedirectToAction(nameof(Index), "Cart");
         }
 
@@ -327,6 +336,12 @@ namespace bookstore.Areas.Customer.Controllers
                         ]);
 
                         transaction.Commit();
+
+                        // we need to store the number of distince user items a user has in a session so we can display it in 
+                        // header of site.  We must make a database call to get the number of items in cart for this logged in user
+                        // can clear the session for that specific key which effectivly resets it to 0 when we clear the shopping cart
+                        // of this user on successful checkout.
+                        HttpContext.Session.Remove(SD.SessionCart);
                     }
                     else
                     {

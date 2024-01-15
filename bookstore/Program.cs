@@ -34,6 +34,15 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = @"/Identity/Account/AccessDenied";
 });
 
+// enable sessions
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(100);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 
@@ -61,6 +70,9 @@ app.UseRouting();
 // we need to add "UseAuthentication before UseAuthorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// enable sessions
+app.UseSession();
 
 app.MapRazorPages();
 
