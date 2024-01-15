@@ -27,18 +27,6 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        // we need to store the number of distince user items a user has in a session so we can display it in 
-        // header of site.  We must make a database call to get the number of items in cart for this logged in user
-        var claimsIdentity = User.Identity as ClaimsIdentity;
-        var userId = claimsIdentity?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (userId is not null && HttpContext.Session.GetInt32(SD.SessionCart) is null)
-        {
-            var itemCount = _uow.ShoppingCarts.SqlQuery<int>($@"
-                SELECT COUNT(Id) FROM dbo.ShoppingCarts WHERE ApplicationUserId = @ApplicationUserId
-            ", [new SqlParameter("ApplicationUserId", userId)])?.FirstOrDefault();
-            HttpContext.Session.SetInt32(SD.SessionCart, itemCount ?? 0);
-        }
-
         var productList = _uow.Products
             .SqlQuery<ProductWithCategory>(@$"
                 SELECT 
