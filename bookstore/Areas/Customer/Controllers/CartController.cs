@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using Bookstore.Models.Domain;
+using Bookstore.Models.Identity;
 using Bookstore.Models.ViewModels;
 using Bookstore.Utility;
 using BookStore.DataAccess.UnitOfWork.IUnitOfWork;
@@ -349,6 +350,10 @@ namespace bookstore.Areas.Customer.Controllers
 
             if (userId is null) return null;
 
+            var applicationUser = _uow.ApplicationUsers.FromSql($@"
+                SELECT * FROM dbo.AspNetUsers WHERE Id = @Id
+            ", [new SqlParameter("Id", userId)]).FirstOrDefault();
+
             var shoppingCartList = _uow.ShoppingCarts.FromSql($@"
                 SELECT * 
                 FROM dbo.ShoppingCarts
@@ -362,6 +367,7 @@ namespace bookstore.Areas.Customer.Controllers
                     OrderHeader = new OrderHeader
                     {
                         ApplicationUserId = userId,
+                        ApplicationUser = applicationUser ?? new ApplicationUser(),
                         OrderTotal = 0
                     },
                     ShoppingCartList = []
@@ -389,17 +395,13 @@ namespace bookstore.Areas.Customer.Controllers
 
             var OrderTotal = shoppingCartList.Select(sc => GetPriceBasedOnQuantity(sc) * sc.Count).Sum();
 
-            var ApplicationUser = _uow.ApplicationUsers.FromSql($@"
-                SELECT * FROM dbo.AspNetUsers WHERE Id = @Id
-            ", [new SqlParameter("Id", userId)]).FirstOrDefault();
-
             var ShoppingCartView = new ShoppingCartViewModel
             {
                 ShoppingCartList = shoppingCartList,
                 OrderHeader = new OrderHeader
                 {
                     ApplicationUserId = userId,
-                    ApplicationUser = ApplicationUser,
+                    ApplicationUser = applicationUser ?? new ApplicationUser(),
                     OrderTotal = OrderTotal
                 }
             };

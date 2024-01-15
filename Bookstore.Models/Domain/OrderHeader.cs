@@ -12,7 +12,7 @@ namespace Bookstore.Models.Domain
         public required string ApplicationUserId { get; set; }
         [ForeignKey("ApplicationUserId")]
         [ValidateNever]
-        public ApplicationUser? ApplicationUser { get; set; }
+        public required ApplicationUser ApplicationUser { get; set; }
 
         public DateTime OrderDate { get; set; }
 
@@ -22,15 +22,15 @@ namespace Bookstore.Models.Domain
 
         public string? PaymentStatus { get; set; }
 
-        public DateTime? ShippingDate { get; set; }
+        public DateTime ShippingDate { get; set; }
 
         public string? TrackingNumber { get; set; }
 
         public string? Carrier { get; set; }
 
-        public DateTime? PaymentDate { get; set; }
+        public DateTime PaymentDate { get; set; }
 
-        public DateOnly? PaymentDue { get; set; }
+        public DateOnly PaymentDueDate { get; set; }
 
         public string? PaymentIntentId { get; set; }  // stripe payment gateway
         public string? SessionId { get; set; } // stripe payment gateway
