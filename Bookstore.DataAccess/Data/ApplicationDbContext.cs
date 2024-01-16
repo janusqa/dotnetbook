@@ -161,5 +161,11 @@ namespace Bookstore.DataAccess.Data
                 }
           );
         }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            optionsBuilder.EnableDetailedErrors(); // Enable detailed error messages
+
+        }
     }
 }
