@@ -53,7 +53,7 @@
             14. run "dotnet aspnet-codegenerator identity --useDefaultUI"  // implement basic setup. Also see scaffolding options for other scenarios  
             15. I use "dotnet aspnet-codegenerator identity"  to install everything
             16. Note the generator will try to put in program.cs its own DBContext. Delete it and adjust this line to use our own existing context which we adjusted above to be IdentityDbContext.  This is the line to adjust in program.cs (builder.Services.AddDefaultIdentity.....)  
-            17. We can optionally add <IdentityUser> to our  public class ApplicationDbContext : IdentityDbContext<IdentityUser> like that. TOTALLY OPTIONAL
+            17. We can optionally add <ApplicationUser> to our  public class ApplicationDbContext : IdentityDbContext<ApplicationUser> like that. TOTALLY OPTIONAL
             18. Add app.UseAuthentication() to program.cs. It must be added right before app.UseAuthorization()
             19. In appSettings.json Identity scaffolding tried to add a new connection.  We dont need it! Delete it!!!
             20. Now back in program.cs add two things
@@ -62,11 +62,11 @@
          2. Now update migrations after adding these packages
             1. dotnet ef migration add MyMigration --project YourClassLibraryProjectName --startup-project YourWebAppProjectName
             2. dotnet ef database update --startup-project path\to\your\startup\project.csproj
-         3. We may want to extend the IdentityUser and what fields it has. Example we may want to  give this user an Address.  
+         3. We may want to extend the ApplicationUser and what fields it has. Example we may want to  give this user an Address.  
             1. In Models project add the "dotnet add package Microsoft.Extensions.Identity.Stores --version 8.0.0" 
-            2. Create a new class eg. ApplicationUser and inherit it from IdentityUser. Add your customizations to this file. 
-            3. Now we need to update the use of IdentityUser in some places
-               1. Register.cshtml.cs. Find "private IdentityUser CreateUser()" method and change that and "eturn Activator.CreateInstance<IdentityUser>()" to have "ApplicationUser" instead.
+            2. Create a new class eg. ApplicationUser and inherit it from ApplicationUser. Add your customizations to this file. 
+            3. Now we need to update the use of ApplicationUser in some places
+               1. Register.cshtml.cs. Find "private ApplicationUser CreateUser()" method and change that and "eturn Activator.CreateInstance<ApplicationUser>()" to have "ApplicationUser" instead.
             4. Add appropriate DbSet to ApplicationDBContext for this class so it maps to the existing users table in the DB and run migrations to update DB
       6. run the following commands to set up -uld (use local database)
          1. dotnet add package Microsoft.EntityFrameworkCore.SqlServer
@@ -210,7 +210,7 @@ SECRETS
 -------
 dotnet user-secrets --project [<projectname>]init
 dotnet user-secrets --project [<projectname>] set "ApiKey" "your-api-key"
-var apiKey = Configuration["ApiKey"];
+var apiKey = builder.Configuration.GetValue<string>("ApiKey");
 
 
 IDENTITY ROLES
@@ -280,3 +280,22 @@ clear the session with "HttpContext.Session.Clear();"
 
 You may also need to intilize a session with info when logging in for example you may want to set 
 the number of items in the logged in users cart so it can be displayed in some header.
+
+social logins
+---
+Set up developer accounts as usual and create an app
+In facebook cases in usecases set the oauth url.
+The oauth url in confirguring settings for face book is https://yoursite/signin-facebook
+Get the keys for your .net app from facebook app settings -> basic setup
+Download appropriate nuget package for facebook is Microsoft.AspNetCore.Authentication.Facebook
+Now in programs.cs add the appropriate code. facebook example below
+```
+builder.Services.AddAuthentication().AddFacebook(option =>
+   option.AppId = builder.Configuration.GetValue<string>("FacebookAppId");
+   option.AppSecret = builder.Configuration.GetValue<string>("FacebookAppSecret");
+);
+```
+Add Facebook AppId and AppSecret to secrets
+eg. dotnet user-secrets --project[<PROJECT>] set "[<KEY>] [<VALUE>]
+
+Remember to update the ExternalLogin.cshtml.cs and ExternalLogin.cshtml to handle custom fields files in /Area/Identity/Account (NOT THE ONES IN MANAGE THOUGH!!!)

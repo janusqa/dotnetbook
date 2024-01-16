@@ -30,7 +30,9 @@ namespace bookstore.ViewComponents
             _uow = uow;
         }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<IViewComponentResult> InvokeAsync()
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             // we need to store the number of distince user items a user has in a session so we can display it in 
             // header of site.  We must make a database call to get the number of items in cart for this logged in user

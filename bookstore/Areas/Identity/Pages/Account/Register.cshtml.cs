@@ -28,20 +28,20 @@ namespace bookstore.Areas.Identity.Pages.Account
 {
     public class RegisterModel : PageModel
     {
-        private readonly SignInManager<IdentityUser> _signInManager;
-        private readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager; // we added to work with Identity Roles
-        private readonly IUserStore<IdentityUser> _userStore;
-        private readonly IUserEmailStore<IdentityUser> _emailStore;
+        private readonly IUserStore<ApplicationUser> _userStore;
+        private readonly IUserEmailStore<ApplicationUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
         private readonly IUnitOfWork _uow;
 
         public RegisterModel(
-            UserManager<IdentityUser> userManager,
+            UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager, // we added to confirgure Identity Roles
-            IUserStore<IdentityUser> userStore,
-            SignInManager<IdentityUser> signInManager,
+            IUserStore<ApplicationUser> userStore,
+            SignInManager<ApplicationUser> signInManager,
             ILogger<RegisterModel> logger,
             IEmailSender emailSender,
             IUnitOfWork uow
@@ -117,13 +117,16 @@ namespace bookstore.Areas.Identity.Pages.Account
 
             [Required]
             public string Name { get; set; }
+            [Display(Name = "Street Address")]
             public string StreetAddress { get; set; }
             public string City { get; set; }
             public string State { get; set; }
+            [Display(Name = "Postal Code")]
             public string PostalCode { get; set; }
             // Note PhoneNumber is not a property in our ApplicationUser 
             // It's a field already in the User DB but we want to use it 
             //so we add it here as well with our other custom fields
+            [Display(Name = "Phone Number")]
             public string PhoneNumber { get; set; }
             public int? CompanyId { get; set; }
             [ValidateNever]
@@ -269,29 +272,29 @@ namespace bookstore.Areas.Identity.Pages.Account
             return Page();
         }
 
-        // private IdentityUser CreateUser()
+        // private ApplicationUser CreateUser()
         private ApplicationUser CreateUser()
         {
             try
             {
-                // return Activator.CreateInstance<IdentityUser>();
+                // return Activator.CreateInstance<ApplicationUser>();
                 return Activator.CreateInstance<ApplicationUser>(); // updated so we can customize info we collected on a user 
             }
             catch
             {
-                throw new InvalidOperationException($"Can't create an instance of '{nameof(IdentityUser)}'. " +
-                    $"Ensure that '{nameof(IdentityUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
+                throw new InvalidOperationException($"Can't create an instance of '{nameof(ApplicationUser)}'. " +
+                    $"Ensure that '{nameof(ApplicationUser)}' is not an abstract class and has a parameterless constructor, or alternatively " +
                     $"override the register page in /Areas/Identity/Pages/Account/Register.cshtml");
             }
         }
 
-        private IUserEmailStore<IdentityUser> GetEmailStore()
+        private IUserEmailStore<ApplicationUser> GetEmailStore()
         {
             if (!_userManager.SupportsUserEmail)
             {
                 throw new NotSupportedException("The default UI requires a user store with email support.");
             }
-            return (IUserEmailStore<IdentityUser>)_userStore;
+            return (IUserEmailStore<ApplicationUser>)_userStore;
         }
     }
 }
