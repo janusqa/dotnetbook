@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Bookstore.Utility;
 using Bookstore.Models.Identity;
+using BookStore.DataAccess.DBInitilizer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,7 +46,7 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 
 // enable facebook logins
 builder.Services.AddAuthentication().AddFacebook(options =>
@@ -57,6 +58,9 @@ builder.Services.AddAuthentication().AddFacebook(options =>
     options.ClientId = builder.Configuration.GetValue<string>("GoogleAppId") ?? "";
     options.ClientSecret = builder.Configuration.GetValue<string>("GoogleAppSecret") ?? "";
 });
+
+// Add DBInitilizer Service
+builder.Services.AddScoped<IDBInitilizer, DBInitilizer>();
 
 // ***BEGIN CUSTOM CONFIG FOR SECRETS
 // API KEYS STORE IN SECRETS (dotnet user-secrets init)
@@ -86,6 +90,9 @@ app.UseAuthorization();
 // enable sessions
 app.UseSession();
 
+// seed initial roles and admin user
+await SeedDatabase();
+
 app.MapRazorPages();
 
 app.MapControllerRoute(
@@ -93,3 +100,13 @@ app.MapControllerRoute(
     pattern: "{area=Customer}/{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+// Remember to register IDBInitilizer as a scoped service above
+async Task SeedDatabase()
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbInitilizer = scope.ServiceProvider.GetRequiredService<IDBInitilizer>();
+        await dbInitilizer.Initilize();
+    }
+}

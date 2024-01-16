@@ -138,22 +138,6 @@ namespace bookstore.Areas.Identity.Pages.Account
         public async Task OnGetAsync(string returnUrl = null)
         {
             // ** BEGIN CUSTOM CODE TO ADD ROLES WHEN VISITING THE REGISTER PAGE
-            var roles = new List<string> {
-                SD.Role_Customer,
-                SD.Role_Company,
-                SD.Role_Admin,
-                SD.Role_Employee,
-            };
-
-            var CreateRolesTask = roles
-                .Where(r => !_roleManager.RoleExistsAsync(r).GetAwaiter().GetResult())
-                .ToList();
-
-            foreach (var task in CreateRolesTask)
-            {
-                await _roleManager.CreateAsync(new IdentityRole(task));
-            }
-
             Input = new InputModel
             {
                 RoleList =

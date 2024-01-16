@@ -299,3 +299,10 @@ Add Facebook AppId and AppSecret to secrets
 eg. dotnet user-secrets --project[<PROJECT>] set "[<KEY>] [<VALUE>]
 
 Remember to update the ExternalLogin.cshtml.cs and ExternalLogin.cshtml to handle custom fields files in /Area/Identity/Account (NOT THE ONES IN MANAGE THOUGH!!!)
+
+Seeding the initial users and roles using custom DBInitilizer class
+---
+See DBInitilizer.
+After setting this class up then utilize it in programs.cs
+To test if it works change connecting string to point to a fresh database. We can delete it after testing.
+Dont forget to change connecting string back.
