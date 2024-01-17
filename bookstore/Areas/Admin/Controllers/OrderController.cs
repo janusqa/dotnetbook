@@ -253,7 +253,7 @@ namespace bookstore.Areas.Admin.Controllers
                     od.Product = products[od.ProductId];
                 };
 
-                var baseUrl = @"https://localhost:7125";
+                var baseUrl = $@"{Request.Scheme}://{Request.Host.Value}";
 
                 // Stripe
                 var options = new Stripe.Checkout.SessionCreateOptions

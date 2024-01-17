@@ -1,0 +1,42 @@
+<div class="card shadow border-0 mt-4 mb-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Users</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-4">
+        <div class="row pb-3">
+            <div class="col-6">
+            </div>
+            <div class="col-6 text-end">
+                <a class="btn btn-primary" asp-area="Identity" asp-page="/Account/Register"><i
+                        class="bi bi-plus-circle"></i>
+                    Create</a>
+            </div>
+        </div>
+        <div class="table-responsive">
+            @*
+            The data for this table is loaded in a datatable.net datatable
+            The js script is in bookstore/wwwroot/js/company.js
+            *@
+            <table id="tblData" class="table table-bordered table-striped dt-responsive">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/user.js"></script>
+}

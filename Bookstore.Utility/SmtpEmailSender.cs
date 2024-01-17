@@ -1,9 +1,10 @@
-using System.Net;
-using System.Net.Mail;
-using FluentEmail.Core;
-using FluentEmail.MailKitSmtp;
+
+using MailKit;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Configuration;
+using MimeKit;
 
 namespace Bookstore.Utility
 {
@@ -27,25 +28,26 @@ namespace Bookstore.Utility
             _pid = _config.GetValue<string>("Smtp:pid") ?? "";
         }
 
-        public Task SendEmailAsync(string email, string subject, string message)
+        public async Task SendEmailAsync(string email, string subject, string message)
         {
-            // using Fluent.Smtp nuget package.
-            var sender = new MailKitSender(new SmtpClientOptions
+            var emailMessage = new MimeMessage
             {
-                Server = _server,
-                Port = _port,
-                UseSsl = true,
-                User = _uid,
-                Password = _pid
-            });
+                Sender = MailboxAddress.Parse(_uid)
+            };
+            emailMessage.To.Add(MailboxAddress.Parse(email));
+            emailMessage.Subject = subject;
+            var body = new BodyBuilder
+            {
+                HtmlBody = message
+            };
+            emailMessage.Body = body.ToMessageBody();
 
-            Email.DefaultSender = sender;
-
-            return Email.From(_uid)
-                .To(email)
-                .Subject(subject)
-                .Body(message)
-                .SendAsync();
+            using var smtp = new SmtpClient(new ProtocolLogger(Console.OpenStandardOutput()));
+            smtp.Connect(_server, _port, SecureSocketOptions.StartTls);
+            smtp.Authenticate(_uid, _pid);
+            var result = await smtp.SendAsync(emailMessage);
+            smtp.Disconnect(true);
+            return;
             // return Task.CompletedTask; // use this to mock a service.
         }
     }

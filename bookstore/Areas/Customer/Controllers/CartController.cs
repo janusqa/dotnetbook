@@ -211,7 +211,7 @@ namespace bookstore.Areas.Customer.Controllers
                 {
                     // This is a non-company transaction so beging payment processing
                     // if it fails rollback, otherwise commit the order
-                    var baseUrl = @"https://localhost:7125";
+                    var baseUrl = $@"{Request.Scheme}://{Request.Host.Value}";
 
                     // Stripe
                     var options = new Stripe.Checkout.SessionCreateOptions

@@ -128,30 +128,29 @@
 </div>
 
 @section Scripts {
-    <script type="text/javascript">
-        let roleSelect;
-
-        const onRoleChange = (event) => {
-            if (event.target.value === 'Company') {
-                document.getElementById("Input_CompanyId").style.display = "inline-block";
-            } else {
-                document.getElementById("Input_CompanyId").style.display = "none";
-            }
-        }
-
-        const ready = () => {
-            roleSelect = document.getElementById("Input_Role");
-            roleSelect.addEventListener("change", onRoleChange);
-        }
-
-        const cleanUp = () => {
-            roleSelect.removeEventListener("change", onRoleChange);
-            document.removeEventListener("DOMContentLoaded", ready);
-            console.log("cleaned!!!")
-        }
-
-        document.addEventListener("DOMContentLoaded", ready);
-        window.addEventListener("beforeunload", cleanUp); 
-    </script>
     <partial name="_ValidationScriptsPartial" />
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            var roleSelect = document.getElementById('Input_Role');
+            var companyInput = document.getElementById('Input_CompanyId');
+
+            function handleRoleChange() {
+                var selection = roleSelect.options[roleSelect.selectedIndex].text;
+
+                if (selection === 'Company') {
+                    companyInput.style.display = 'inline-block';
+                } else {
+                    companyInput.style.display = 'none';
+                }
+            }
+
+            if (roleSelect && companyInput) {
+                roleSelect.addEventListener('change', handleRoleChange);
+                window.addEventListener('beforeunload', function () {
+                    roleSelect.removeEventListener('change', handleRoleChange);
+                });
+            }
+        });
+    </script>
+
 }
