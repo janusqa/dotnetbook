@@ -74,15 +74,19 @@ namespace bookstore.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult Lock([FromBody] JsonElement requestBody)
+        public IActionResult LockUser([FromBody] JsonElement requestBody)
         {
-            int? entityId = requestBody.GetProperty("entityId").GetInt32();
-            string? lockoutEnd = requestBody.GetProperty("lockoutEnd").GetString();
-            if (entityId is null || entityId == 0) return Json(new { success = false, message = "Not found" });
+            JsonElement entityIdElement = requestBody.GetProperty("entityId");
+            string? entityId = entityIdElement.ValueKind == JsonValueKind.Null ? null : entityIdElement.GetString();
 
-            var sqlLockoutParam = new SqlParameter { ParameterName = "lockoutEnd" };
+            JsonElement lockoutEndElement = requestBody.GetProperty("lockoutEnd");
+            string? lockoutEnd = lockoutEndElement.ValueKind == JsonValueKind.Null ? null : lockoutEndElement.GetString();
 
-            if (lockoutEnd is not null && DateTime.Parse(lockoutEnd) > DateTime.Now)
+            if (entityId is null) return Json(new { success = false, message = "Not found" });
+
+            var sqlLockoutParam = new SqlParameter { ParameterName = "LockoutEnd" };
+
+            if (DateTime.TryParse(lockoutEnd, out DateTime lockoutEndDate) && lockoutEndDate > DateTime.Now)
             {
                 // unlock user
                 sqlLockoutParam.Value = DateTime.Now;

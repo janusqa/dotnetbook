@@ -23,23 +23,16 @@ const loadDataTable = () => {
                     const userLocked =
                         lockout == null || lockout <= today ? false : true;
 
-                    const payload = {
-                        test1: 1,
-                        test2: 2,
-                    };
-
-                    const links = `;
+                    const links = `
                     <div class="w-75 btn-group" role="group">
-                    <a onClick="Lock('/Admin/User/Lock', ${JSON.stringify(
-                        payload
-                    )
-                        .split("'")
-                        .join('&quot;')});" id="lock"  class="btn btn-${
+                    <a onClick="LockUser('/Admin/User/LockUser', '${
+                        data.id
+                    }', '${data.lockoutEnd}');" class="btn btn-${
                         userLocked ? 'success' : 'danger'
                     } mx-2"><i class="bi bi-${
                         userLocked ? 'unlock-fill' : 'lock-fill'
                     }"></i> ${userLocked ? 'Unlock' : 'Lock'}</a>
-                    <a  id="permission" class="btn btn-danger mx-2"><i class="bi bi-pencil-square"></i> Permission</a>
+                    <a class="btn btn-danger mx-2"><i class="bi bi-pencil-square"></i> Permission</a>
                     </div>
                     `;
 
@@ -50,26 +43,25 @@ const loadDataTable = () => {
     });
 };
 
-const Lock = (url, data) => {
-    console.log(data);
-    // fetch(url, {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({
-    //         entityId: data.id,
-    //         lockoutEnd: data.lockoutEnd,
-    //     }),
-    // })
-    //     .then((res) => res.json())
-    //     .then((data) => {
-    //         if (data.success) {
-    //             userDataTable.ajax.reload();
-    //             toastr.success(data.message);
-    //         } else {
-    //             toastr.error('Something went worng. Please try again.');
-    //         }
-    //     })
-    //     .catch((error) => {
-    //         toastr.error(error.message);
-    //     });
+const LockUser = (url, entityId, lockoutEnd) => {
+    fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            entityId,
+            lockoutEnd,
+        }),
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.success) {
+                userDataTable.ajax.reload();
+                toastr.success(data.message);
+            } else {
+                toastr.error('Something went worng. Please try again.');
+            }
+        })
+        .catch((error) => {
+            toastr.error(error.message);
+        });
 };
