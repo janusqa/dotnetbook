@@ -1,0 +1,84 @@
+@model UserRoleViewModel
+
+<div class="card shadow border-0 mt-4 mb-4">
+    <div class="card-header bg-secondary bg-gradient ml-0 py-3">
+        <div class="row">
+            <div class="col-12 text-center">
+                <h2 class="text-white py-2">Manage User Role</h2>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p4">
+        <form class="row" method="POST">
+            <input type="hidden" asp-for="@Model.User.Id" />
+            <div class="border p-3">
+                <div asp-validation-summary="ModelOnly"></div>
+                <div class="form-floating py-2 col-12">
+                    <input asp-for="@Model.User.Email" readonly class="form-control border-0 shadow" />
+                    <label asp-for="@Model.User.Email" class="ms-0"></label>
+                    <span asp-validation-for="@Model.User.Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating py-2 col-12">
+                    <Select asp-for="@Model.User.RoleId" asp-items="@Model.Roles" class="form-select">
+                        <Option disable value="">--Select Role--</Option>
+                    </Select>
+                    <span asp-validation-for="@Model.User.RoleId" class="text-danger"></span>
+                </div>
+                <div id="Input_CompanyId" class="form-floating py-2 col-12" style="display:none;">
+                    <Select asp-for="@Model.User.CompanyId" asp-items="@Model.Companies" class="form-select">
+                        <Option disable value="">--Select Company--</Option>
+                    </Select>
+                    <span asp-validation-for="@Model.User.CompanyId" class="text-danger"></span>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6 col-md-3 p-1">
+                        <button class="btn btn-primary form-control" type="submit">Update</button>
+                    </div>
+                    <div class="col-6 col-md-3 p-1">
+                        <a class="btn btn-outline-primary border form-control" asp-area="Admin" asp-controller="User"
+                            asp-action="Index">Users</a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@*
+Add client-side validation in addition to the server-side validation above
+Client-side valididation is implemented using jquery from the partial scripts files
+in the shared views. The syntax below is generally for consuming a partial view.
+*@
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            var roleSelect = document.getElementById('User_RoleId');
+            var companySelect = document.getElementById('Input_CompanyId');
+
+            var selection = roleSelect.options[roleSelect.selectedIndex].text;
+            if (selection === 'Company') {
+                companySelect.style.display = 'inline-block';
+            } else {
+                companySelect.style.display = 'none';
+            }
+
+            function handleRoleChange() {
+                var selection = roleSelect.options[roleSelect.selectedIndex].text;
+                if (selection === 'Company') {
+                    companySelect.style.display = 'inline-block';
+                } else {
+                    companySelect.style.display = 'none';
+                }
+            }
+
+            if (roleSelect && companySelect) {
+                roleSelect.addEventListener('change', handleRoleChange);
+                window.addEventListener('beforeunload', function () {
+                    roleSelect.removeEventListener('change', handleRoleChange);
+                });
+            }
+        });
+    </script>
+}

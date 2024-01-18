@@ -15,6 +15,7 @@ namespace BookStore.DataAccess.Repository
         public IApplicationUserRepository ApplicationUsers { get; init; }
         public IOrderHeaderRepository OrderHeaders { get; init; }
         public IOrderDetailRepository OrderDetails { get; init; }
+        public IProductImageRepository ProductImages { get; init; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -27,6 +28,7 @@ namespace BookStore.DataAccess.Repository
             ApplicationUsers = new ApplicationUserRepository(_db);
             OrderHeaders = new OrderHeaderRepository(_db);
             OrderDetails = new OrderDetailRepository(_db);
+            ProductImages = new ProductImageRepository(_db);
         }
 
         public int Complete()

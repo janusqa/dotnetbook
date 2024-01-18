@@ -132,19 +132,19 @@
     <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', function () {
             var roleSelect = document.getElementById('Input_Role');
-            var companyInput = document.getElementById('Input_CompanyId');
+            var companySelect = document.getElementById('Input_CompanyId');
 
             function handleRoleChange() {
                 var selection = roleSelect.options[roleSelect.selectedIndex].text;
 
                 if (selection === 'Company') {
-                    companyInput.style.display = 'inline-block';
+                    companySelect.style.display = 'inline-block';
                 } else {
-                    companyInput.style.display = 'none';
+                    companySelect.style.display = 'none';
                 }
             }
 
-            if (roleSelect && companyInput) {
+            if (roleSelect && companySelect) {
                 roleSelect.addEventListener('change', handleRoleChange);
                 window.addEventListener('beforeunload', function () {
                     roleSelect.removeEventListener('change', handleRoleChange);
@@ -152,5 +152,4 @@
             }
         });
     </script>
-
 }

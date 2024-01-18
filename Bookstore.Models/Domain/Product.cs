@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace Bookstore.Models.Domain
 {
@@ -47,5 +48,8 @@ namespace Bookstore.Models.Domain
 
         [Display(Name = "Image upload")]
         public string? ImageUrl { get; set; }
+
+        [ValidateNever]
+        public List<ProductImage>? ProductImages { get; set; }
     }
 }

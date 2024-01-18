@@ -31,6 +31,8 @@ namespace Bookstore.DataAccess.Data
 
         public DbSet<OrderDetail> OrderDetails { get; set; }
 
+        public DbSet<ProductImage> ProductImages { get; set; }
+
         // This is a configuration settting for Identity
         // use this to seed the Category table with some data if required. 
         // We created this ourselves. It was not there initially.

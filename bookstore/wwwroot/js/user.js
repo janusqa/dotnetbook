@@ -28,11 +28,13 @@ const loadDataTable = () => {
                     <a onClick="LockUser('/Admin/User/LockUser', '${
                         data.id
                     }', '${data.lockoutEnd}');" class="btn btn-${
-                        userLocked ? 'success' : 'danger'
+                        userLocked ? 'danger' : 'success'
                     } mx-2"><i class="bi bi-${
-                        userLocked ? 'unlock-fill' : 'lock-fill'
-                    }"></i> ${userLocked ? 'Unlock' : 'Lock'}</a>
-                    <a class="btn btn-danger mx-2"><i class="bi bi-pencil-square"></i> Permission</a>
+                        userLocked ? 'lock-fill' : 'unlock-fill'
+                    }"></i></a>
+                    <a href="/Admin/User/RoleManagement?entityId=${
+                        data.id
+                    }" class="btn btn-danger mx-2"><i class="bi bi-pencil-square"></i></a>
                     </div>
                     `;
 

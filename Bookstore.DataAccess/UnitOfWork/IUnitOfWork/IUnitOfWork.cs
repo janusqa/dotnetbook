@@ -12,6 +12,7 @@ namespace BookStore.DataAccess.UnitOfWork.IUnitOfWork
         IApplicationUserRepository ApplicationUsers { get; init; }
         IOrderHeaderRepository OrderHeaders { get; init; }
         IOrderDetailRepository OrderDetails { get; init; }
+        IProductImageRepository ProductImages { get; init; }
 
         int Complete();
 
