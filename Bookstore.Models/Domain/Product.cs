@@ -49,7 +49,9 @@ namespace Bookstore.Models.Domain
         [Display(Name = "Image upload")]
         public string? ImageUrl { get; set; }
 
+        [Display(Name = "Product Images")]
         [ValidateNever]
+        [NotMapped]
         public List<ProductImage>? ProductImages { get; set; }
     }
 }

@@ -12,6 +12,8 @@ using Newtonsoft.Json.Linq;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Bookstore.Utility;
+using System.Text;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace bookstore.Areas.Admin.Controllers
 {
@@ -31,36 +33,66 @@ namespace bookstore.Areas.Admin.Controllers
             _uow = uow;
         }
 
+        // NOTE: we originally we had a mvc delete controller with view
+        // We now use the webapi endpoint at the bottom so this is deprecated
+        // We still use it but only to load the JS that grabs the products using 
+        // the webapi.  So when we return we do not return a viewmodel.
         public IActionResult Index()
         {
             var productList = _uow.Products
-            .SqlQuery<ProductWithCategory>(@$"
+                .SqlQuery<ProductWithIncluded>(@$"
                 SELECT 
                     p.*,
                     c.Name AS CategoryName,
-                    c.DisplayOrder As CategoryDisplayOrder
-                FROM dbo.Products p INNER JOIN dbo.Categories c
-                ON (p.CategoryId = C.Id)
+                    c.DisplayOrder As CategoryDisplayOrder,
+                    pi.Id AS ProductImageId,
+                    pi.ImageUrl as ProductImageUrl
+                FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+                LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
             ", [])?
-            .Select(pwc =>
-                new Product
+            .GroupBy(
+                p => p.Id,
+                p => new
                 {
-                    Id = pwc.Id,
-                    Title = pwc.Title,
-                    Description = pwc.Description,
-                    ISBN = pwc.ISBN,
-                    Author = pwc.Author,
-                    ListPrice = pwc.ListPrice,
-                    Price = pwc.Price,
-                    Price50 = pwc.Price50,
-                    Price100 = pwc.Price100,
-                    ImageUrl = pwc.ImageUrl,
-                    CategoryId = pwc.CategoryId,
-                    Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
-                }
-            ).ToList();
+                    p.Title,
+                    p.Description,
+                    p.ISBN,
+                    p.Author,
+                    p.ListPrice,
+                    p.Price,
+                    p.Price50,
+                    p.Price100,
+                    p.CategoryId,
+                    p.CategoryName,
+                    p.CategoryDisplayOrder,
+                    p.ProductImageId,
+                    p.ProductImageUrl
+                },
+                (k, g) => new Product
+                {
+                    Id = k,
+                    Title = g.First().Title,
+                    Description = g.First().Description,
+                    ISBN = g.First().ISBN,
+                    Author = g.First().Author,
+                    ListPrice = g.First().ListPrice,
+                    Price = g.First().Price,
+                    Price50 = g.First().Price50,
+                    Price100 = g.First().Price100,
+                    CategoryId = g.First().CategoryId,
+                    Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                    ProductImages = g
+                        .Where(p => p.ProductImageId is not null)
+                        .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
 
-            return View(productList ?? []);
+                }
+                ).ToList() ?? [];
+
+            // we are not actually using the query view model retrieved above anymore.
+            // So we can return a View with no view model.  The View cshtml is now populated
+            // from the GetAll WebApi at the bottom in WebApi region part.
+            // return View(productList ?? []);
+            return View();
         }
 
         // for Create/Edit for product we will handle it differently to Category.
@@ -68,13 +100,55 @@ namespace bookstore.Areas.Admin.Controllers
         // The fuctionaility of both creating and updating.
         public IActionResult Upsert(int? entityId)
         {
-            Product? product = entityId is null || entityId == 0
+            var product = entityId is null || entityId == 0
                 ? new Product()
-                : _uow.Products
-                .FromSql($@"
-                    SELECT * FROM dbo.Products
-                    WHERE Id = @Id;
-                ", [new SqlParameter("Id", entityId)]).FirstOrDefault();
+                : _uow.Products.SqlQuery<ProductWithIncluded>(@$"
+                SELECT 
+                    p.*,
+                    c.Name AS CategoryName,
+                    c.DisplayOrder As CategoryDisplayOrder,
+                    pi.Id AS ProductImageId,
+                    pi.ImageUrl as ProductImageUrl
+                FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+                LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
+                WHERE p.Id = @Id
+            ", [new SqlParameter("Id", entityId)])?
+            .GroupBy(
+                p => p.Id,
+                p => new
+                {
+                    p.Title,
+                    p.Description,
+                    p.ISBN,
+                    p.Author,
+                    p.ListPrice,
+                    p.Price,
+                    p.Price50,
+                    p.Price100,
+                    p.CategoryId,
+                    p.CategoryName,
+                    p.CategoryDisplayOrder,
+                    p.ProductImageId,
+                    p.ProductImageUrl
+                },
+                (k, g) => new Product
+                {
+                    Id = k,
+                    Title = g.First().Title,
+                    Description = g.First().Description,
+                    ISBN = g.First().ISBN,
+                    Author = g.First().Author,
+                    ListPrice = g.First().ListPrice,
+                    Price = g.First().Price,
+                    Price50 = g.First().Price50,
+                    Price100 = g.First().Price100,
+                    CategoryId = g.First().CategoryId,
+                    Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                    ProductImages = g
+                        .Where(p => p.ProductImageId is not null)
+                        .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
+                }
+                ).ToList().FirstOrDefault();
 
             if (product is null) return NotFound();
 
@@ -125,7 +199,104 @@ namespace bookstore.Areas.Admin.Controllers
         }
 
         [HttpPost]
-        public IActionResult Upsert(ProductViewModel productView, IFormFile? file)
+        public IActionResult Upsert(ProductViewModel productView, List<IFormFile>? files)
+        {
+            // Add our own custom checks if any
+
+            if (ModelState.IsValid)  // checks that inputs are valid according to annotations on the model we are working with
+            {
+                var productId = _uow.Products.SqlQuery<int>(@"
+                        MERGE INTO dbo.Products AS target
+                        USING 
+                            (
+                                VALUES (@Id, @Title, @Description, @ISBN, @Author, @ListPrice, @Price, @Price50, @Price100, @CategoryId)
+                            ) AS source (Id, Title, Description, ISBN, Author, ListPrice, Price, Price50, Price100, CategoryId)
+                        ON target.Id = source.Id
+                        WHEN MATCHED THEN
+                            UPDATE SET 
+                                target.Title = source.Title, 
+                                target.Description = source.Description, 
+                                target.ISBN = source.ISBN, 
+                                target.Author = source.Author, 
+                                target.ListPrice = source.ListPrice, 
+                                target.Price = source.Price, 
+                                target.Price50 = source.Price50, 
+                                target.Price100 = source.Price100,
+                                target.CategoryId = source.CategoryId
+                        WHEN NOT MATCHED THEN
+                            INSERT (Title, Description, ISBN, Author, ListPrice, Price, Price50, Price100, CategoryId) 
+                                    VALUES (source.Title, source.Description, source.ISBN, source.Author, source.ListPrice, source.Price, source.Price50, source.Price100, source.CategoryId)
+                        OUTPUT inserted.Id;
+                    ", [
+                            new SqlParameter("Id", productView.Product.Id),
+                            new SqlParameter("Title", productView.Product.Title),
+                            new SqlParameter("Description", productView.Product.Description),
+                            new SqlParameter("ISBN", productView.Product.ISBN),
+                            new SqlParameter("Author", productView.Product.Author),
+                            new SqlParameter("ListPrice", productView.Product.ListPrice),
+                            new SqlParameter("Price", productView.Product.Price),
+                            new SqlParameter("Price50", productView.Product.Price50),
+                            new SqlParameter("Price100", productView.Product.Price100),
+                            new SqlParameter("CategoryId", productView.Product.CategoryId),
+                    ])?.FirstOrDefault();
+
+                if (files is not null && files.Count > 0 && productId is not null)
+                {
+                    string wwwRootPath = _webHostEnvrionment.WebRootPath;
+                    var inParams = new StringBuilder();
+                    var sqlParams = new List<SqlParameter> { new SqlParameter($"pid", productId) };
+                    foreach (var (file, idx) in files.Select((file, idx) => (file, idx)))
+                    {
+                        string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
+                        string urlPath = $@"images/product/product_{productId}";
+                        string filePath = Path.Combine(wwwRootPath, urlPath);
+
+
+                        if (!Directory.Exists(filePath))
+                        {
+                            Directory.CreateDirectory(filePath);
+                        }
+
+                        using (FileStream writer = new FileStream(Path.Combine(filePath, fileName), FileMode.Create))
+                        {
+                            file.CopyTo(writer);
+                        }
+
+                        inParams.Append($"(@iu{idx}, @pid),");
+                        sqlParams.Add(new SqlParameter($"iu{idx}", $@"/{urlPath}/{fileName}"));
+                    }
+
+                    _uow.ProductImages.ExecuteSql($@"
+                        INSERT INTO dbo.ProductImages
+                        (ImageUrl, ProductId) VALUES {inParams.ToString()[..^1]}
+                    ", sqlParams);
+                }
+
+                var productImages = _uow.ProductImages.FromSql($@"
+                    SELECT * FROM dbo.ProductImages WHERE ProductId = @ProductId
+                ", [new SqlParameter("ProductId", productId)]);
+                productView.Product.ProductImages = productImages.ToList();
+
+                TempData["success"] = $"Product {(productView.Product.Id == 0 ? "created" : "updated")} successfully"; // used for passing data in the next rendered page.
+                return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
+            }
+
+            IEnumerable<SelectListItem> CategoryList =
+                _uow.Categories
+                .FromSql(@$"
+                    SELECT * 
+                    FROM dbo.Categories;
+                ", [])
+                .Select(c => new SelectListItem { Text = c.Name, Value = c.Id.ToString() });
+
+            productView.CategoryList = CategoryList;
+
+            return View(productView);
+        }
+
+        // Derprecated. Not used. Kept for demo. Use multi file upload controller above.
+        [HttpPost]
+        public IActionResult UpsertSingleImageUploadImplementation(ProductViewModel productView, IFormFile? file)
         {
             // Add our own custom checks if any
 
@@ -135,7 +306,8 @@ namespace bookstore.Areas.Admin.Controllers
                 {
                     string wwwRootPath = _webHostEnvrionment.WebRootPath;
                     string fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    string productPath = Path.Combine(wwwRootPath, @"images/product");
+                    string urlPath = @"images/product";
+                    string filePath = Path.Combine(wwwRootPath, urlPath);
 
                     // if a file was uploaded and there is an existing file
                     // we need to repalce the existing file by first deleting 
@@ -147,11 +319,11 @@ namespace bookstore.Areas.Admin.Controllers
                         if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
                     }
 
-                    using (FileStream writer = new FileStream(Path.Combine(productPath, fileName), FileMode.Create))
+                    using (FileStream writer = new FileStream(Path.Combine(filePath, fileName), FileMode.Create))
                     {
                         file.CopyTo(writer);
                     }
-                    productView.Product.ImageUrl = @$"/images/product/{fileName}";
+                    productView.Product.ImageUrl = @$"/{urlPath}/{fileName}";
                 }
                 else
                 {
@@ -197,7 +369,7 @@ namespace bookstore.Areas.Admin.Controllers
                             new SqlParameter("Price100", productView.Product.Price100),
                             new SqlParameter("CategoryId", productView.Product.CategoryId),
                             new SqlParameter("ImageUrl", productView.Product.ImageUrl)
-                        ]);
+                    ]);
                 TempData["success"] = $"Product {(productView.Product.Id == 0 ? "created" : "updated")} successfully"; // used for passing data in the next rendered page.
                 return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
             }
@@ -220,7 +392,7 @@ namespace bookstore.Areas.Admin.Controllers
         // so that controller is now deprecated and of no use. 
         // Keeping it around as just an example of a controller
         // that means the controller below both of them are no
-        // in use. They are depracated in favor of DeleteEntiy 
+        // in use. They are depracated in favor of DeleteEntity 
         // API in the regions at end of this page.
         public IActionResult Delete(int? entityId)
         {
@@ -237,6 +409,10 @@ namespace bookstore.Areas.Admin.Controllers
             return View(product);
         }
 
+        // NOTE: we originally we had a mvc delete controller with view
+        // we are now using this api to delete without showing a view.
+        // so that controller is now deprecated and of no use. 
+        //
         // We have to be careful here. We need to name this ACTION
         // as DeletePOST so it does not conflict with the above ACTION
         // which will have same NAME and PARAMS.
@@ -258,38 +434,86 @@ namespace bookstore.Areas.Admin.Controllers
             return RedirectToAction("Index", "Product"); // redirects to the specified ACTION of secified CONTROLLER
         }
 
+        public IActionResult DeleteImage(int entityId)
+        {
+            var ImageToDelete = _uow.ProductImages.FromSql(@$"
+                    SELECT 
+                        *
+                    FROM dbo.ProductImages
+                    WHERE (Id = @Id);
+                ", [new SqlParameter("Id", entityId)])?
+                .FirstOrDefault();
+
+            if (ImageToDelete is not null)
+            {
+                string wwwRootPath = _webHostEnvrionment.WebRootPath;
+                string existingImage = Path.Combine(wwwRootPath, ImageToDelete.ImageUrl[1..]);
+                if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+            }
+
+            _uow.ProductImages.ExecuteSql($@"
+                DELETE FROM dbo.ProductImages WHERE Id = @Id
+            ", [new SqlParameter("Id", entityId)]);
+
+            TempData["success"] = "Image deleted successfully";
+
+            return RedirectToAction(nameof(Upsert), "Product", new { entityId = ImageToDelete?.ProductId });
+        }
+
+        // Note this we use this now instead of above mvc controller.
+        // It is used to populate the datatables.net table
         // we can define WebApi calls directly in mvc by creating a region
         // use WebAPI annotations
         #region API CALLS
         [HttpGet]
         public IActionResult GetAll()
         {
-            var productList = _uow.Products
-            .SqlQuery<ProductWithCategory>(@$"
+            var productList = _uow.Products.SqlQuery<ProductWithIncluded>(@$"
                 SELECT 
                     p.*,
                     c.Name AS CategoryName,
-                    c.DisplayOrder As CategoryDisplayOrder
-                FROM dbo.Products p INNER JOIN dbo.Categories c
-                ON (p.CategoryId = C.Id)
+                    c.DisplayOrder As CategoryDisplayOrder,
+                    pi.Id AS ProductImageId,
+                    pi.ImageUrl as ProductImageUrl
+                FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+                LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
             ", [])?
-            .Select(pwc =>
-                new Product
+            .GroupBy(
+                p => p.Id,
+                p => new
                 {
-                    Id = pwc.Id,
-                    Title = pwc.Title,
-                    Description = pwc.Description,
-                    ISBN = pwc.ISBN,
-                    Author = pwc.Author,
-                    ListPrice = pwc.ListPrice,
-                    Price = pwc.Price,
-                    Price50 = pwc.Price50,
-                    Price100 = pwc.Price100,
-                    ImageUrl = pwc.ImageUrl,
-                    CategoryId = pwc.CategoryId,
-                    Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
+                    p.Title,
+                    p.Description,
+                    p.ISBN,
+                    p.Author,
+                    p.ListPrice,
+                    p.Price,
+                    p.Price50,
+                    p.Price100,
+                    p.CategoryId,
+                    p.CategoryName,
+                    p.CategoryDisplayOrder,
+                    p.ProductImageId,
+                    p.ProductImageUrl
+                },
+                (k, g) => new Product
+                {
+                    Id = k,
+                    Title = g.First().Title,
+                    Description = g.First().Description,
+                    ISBN = g.First().ISBN,
+                    Author = g.First().Author,
+                    ListPrice = g.First().ListPrice,
+                    Price = g.First().Price,
+                    Price50 = g.First().Price50,
+                    Price100 = g.First().Price100,
+                    CategoryId = g.First().CategoryId,
+                    Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                    ProductImages = g
+                        .Where(p => p.ProductImageId is not null)
+                        .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
                 }
-            ).ToList();
+                ).ToList() ?? [];
 
             return Json(new { data = productList ?? [] });
         }
@@ -304,19 +528,39 @@ namespace bookstore.Areas.Admin.Controllers
             int? entityId = requestBody.GetProperty("entityId").GetInt32();
             if (entityId is null || entityId == 0) return Json(new { success = false, message = "Not found" });
 
-            var ImageUrlToDelete = _uow.Products.SqlQuery<string>(@$"
-                    SELECT 
-                        ImageUrl
-                    FROM dbo.Products
-                    WHERE (Id = @Id);
-                ", [new SqlParameter("Id", entityId)])?
-            .FirstOrDefault();
+            // Old code for when only single file upload was deleted
+            // and when we stored the image in the product table.
+            //
+            // var ImageUrlToDelete = _uow.Products.SqlQuery<string>(@$"
+            //         SELECT 
+            //             ImageUrl
+            //         FROM dbo.Products
+            //         WHERE (Id = @Id);
+            //     ", [new SqlParameter("Id", entityId)])?
+            // .FirstOrDefault();
 
-            if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
+            // if (ImageUrlToDelete is not null && ImageUrlToDelete != "")
+            // {
+            //     string wwwRootPath = _webHostEnvrionment.WebRootPath;
+            //     string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
+            //     if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+            // }
+
+            string wwwRootPath = _webHostEnvrionment.WebRootPath;
+            string urlPath = $@"images/product/product_{entityId}";
+            string filePath = Path.Combine(wwwRootPath, urlPath);
+
+            if (Directory.Exists(filePath))
             {
-                string wwwRootPath = _webHostEnvrionment.WebRootPath;
-                string existingImage = Path.Combine(wwwRootPath, ImageUrlToDelete[1..]);
-                if (System.IO.File.Exists(existingImage)) System.IO.File.Delete(existingImage);
+                // Deleting files individually not needed, we can pass
+                // second arg to Directory.Delete to delete recursively
+                // 
+                // string[] files = Directory.GetFiles(filePath);
+                // foreach (var file in files)
+                // {
+                //     System.IO.File.Delete(file);
+                // }
+                Directory.Delete(filePath, true);
             }
 
             _uow.Products.ExecuteSql($@"

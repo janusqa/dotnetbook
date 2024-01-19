@@ -27,32 +27,53 @@ public class HomeController : Controller
 
     public IActionResult Index()
     {
-        var productList = _uow.Products
-            .SqlQuery<ProductWithCategory>(@$"
-                SELECT 
-                    p.*,
-                    c.Name AS CategoryName,
-                    c.DisplayOrder As CategoryDisplayOrder
-                FROM dbo.Products p INNER JOIN dbo.Categories c
-                ON (p.CategoryId = C.Id)
+        var productList = _uow.Products.SqlQuery<ProductWithIncluded>(@$"
+            SELECT 
+                p.*,
+                c.Name AS CategoryName,
+                c.DisplayOrder As CategoryDisplayOrder,
+                pi.Id AS ProductImageId,
+                pi.ImageUrl as ProductImageUrl
+            FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+            LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
         ", [])?
-        .Select(pwc =>
-            new Product
+        .GroupBy(
+            p => p.Id,
+            p => new
             {
-                Id = pwc.Id,
-                Title = pwc.Title,
-                Description = pwc.Description,
-                ISBN = pwc.ISBN,
-                Author = pwc.Author,
-                ListPrice = pwc.ListPrice,
-                Price = pwc.Price,
-                Price50 = pwc.Price50,
-                Price100 = pwc.Price100,
-                ImageUrl = pwc.ImageUrl,
-                CategoryId = pwc.CategoryId,
-                Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
+                p.Title,
+                p.Description,
+                p.ISBN,
+                p.Author,
+                p.ListPrice,
+                p.Price,
+                p.Price50,
+                p.Price100,
+                p.CategoryId,
+                p.CategoryName,
+                p.CategoryDisplayOrder,
+                p.ProductImageId,
+                p.ProductImageUrl
+            },
+            (k, g) => new Product
+            {
+                Id = k,
+                Title = g.First().Title,
+                Description = g.First().Description,
+                ISBN = g.First().ISBN,
+                Author = g.First().Author,
+                ListPrice = g.First().ListPrice,
+                Price = g.First().Price,
+                Price50 = g.First().Price50,
+                Price100 = g.First().Price100,
+                CategoryId = g.First().CategoryId,
+                Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                ProductImages = g
+                    .Where(p => p.ProductImageId is not null)
+                    .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
+
             }
-        ).ToList();
+            ).ToList() ?? [];
 
         return View(productList ?? []);
     }
@@ -60,32 +81,53 @@ public class HomeController : Controller
     public IActionResult Details(int entityId)
     {
         var product = _uow.Products
-        .SqlQuery<ProductWithCategory>(@$"
-            SELECT 
-                p.*,
-                c.Name AS CategoryName,
-                c.DisplayOrder As CategoryDisplayOrder
-            FROM dbo.Products p INNER JOIN dbo.Categories c
-            ON (p.CategoryId = C.Id)
-            WHERE (p.Id = @Id);
-        ", [new SqlParameter("Id", entityId)])?
-        .Select(pwc =>
-            new Product
-            {
-                Id = pwc.Id,
-                Title = pwc.Title,
-                Description = pwc.Description,
-                ISBN = pwc.ISBN,
-                Author = pwc.Author,
-                ListPrice = pwc.ListPrice,
-                Price = pwc.Price,
-                Price50 = pwc.Price50,
-                Price100 = pwc.Price100,
-                ImageUrl = pwc.ImageUrl,
-                CategoryId = pwc.CategoryId,
-                Category = new Category { Id = pwc.CategoryId, Name = pwc.CategoryName, DisplayOrder = pwc.CategoryDisplayOrder }
-            }
-        ).FirstOrDefault();
+        .SqlQuery<ProductWithIncluded>(@$"
+                SELECT 
+                    p.*,
+                    c.Name AS CategoryName,
+                    c.DisplayOrder As CategoryDisplayOrder,
+                    pi.Id AS ProductImageId,
+                    pi.ImageUrl as ProductImageUrl
+                FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+                LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
+                WHERE p.Id = @Id
+            ", [new SqlParameter("Id", entityId)])?
+            .GroupBy(
+                p => p.Id,
+                p => new
+                {
+                    p.Title,
+                    p.Description,
+                    p.ISBN,
+                    p.Author,
+                    p.ListPrice,
+                    p.Price,
+                    p.Price50,
+                    p.Price100,
+                    p.CategoryId,
+                    p.CategoryName,
+                    p.CategoryDisplayOrder,
+                    p.ProductImageId,
+                    p.ProductImageUrl
+                },
+                (k, g) => new Product
+                {
+                    Id = k,
+                    Title = g.First().Title,
+                    Description = g.First().Description,
+                    ISBN = g.First().ISBN,
+                    Author = g.First().Author,
+                    ListPrice = g.First().ListPrice,
+                    Price = g.First().Price,
+                    Price50 = g.First().Price50,
+                    Price100 = g.First().Price100,
+                    CategoryId = g.First().CategoryId,
+                    Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                    ProductImages = g
+                        .Where(p => p.ProductImageId is not null)
+                        .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
+                }
+                ).ToList().FirstOrDefault();
 
         if (product is null) return NotFound();
 
@@ -144,7 +186,7 @@ public class HomeController : Controller
         // because this detail product information would not be available otherwise when the page reloads
         // after fail vailidation.
         var product = _uow.Products
-                .SqlQuery<ProductWithCategory>(@$"
+                .SqlQuery<ProductWithIncluded>(@$"
                     SELECT 
                         p.*,
                         c.Name AS CategoryName,

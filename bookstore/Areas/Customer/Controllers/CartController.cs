@@ -397,15 +397,64 @@ namespace bookstore.Areas.Customer.Controllers
                 inParams.Append($"@p{idx},");
                 sqlParams.Add(new SqlParameter($"p{idx}", pId));
             }
-            var products = _uow.Products.FromSql($@"
-                SELECT * 
-                FROM dbo.Products
-                WHERE Id IN ({inParams.ToString()[..^1]});
-            ", sqlParams).ToDictionary(p => p.Id, p => p);
+            // var products = _uow.Products.FromSql($@"
+            //     SELECT * 
+            //     FROM dbo.Products
+            //     WHERE Id IN ({inParams.ToString()[..^1]});
+            // ", sqlParams).ToDictionary(p => p.Id, p => p);
+
+            var products = _uow.Products.SqlQuery<ProductWithIncluded>(@$"
+                    SELECT 
+                        p.*,
+                        c.Name AS CategoryName,
+                        c.DisplayOrder As CategoryDisplayOrder,
+                        pi.Id AS ProductImageId,
+                        pi.ImageUrl as ProductImageUrl
+                    FROM dbo.Products p INNER JOIN dbo.Categories c ON (p.CategoryId = C.Id)
+                    LEFT JOIN dbo.ProductImages pi ON (pi.ProductId = p.Id)
+                    WHERE p.Id IN ({inParams.ToString()[..^1]});
+                ", sqlParams)?
+                .GroupBy(
+                    p => p.Id,
+                    p => new
+                    {
+                        p.Title,
+                        p.Description,
+                        p.ISBN,
+                        p.Author,
+                        p.ListPrice,
+                        p.Price,
+                        p.Price50,
+                        p.Price100,
+                        p.CategoryId,
+                        p.CategoryName,
+                        p.CategoryDisplayOrder,
+                        p.ProductImageId,
+                        p.ProductImageUrl
+                    },
+                    (k, g) => new Product
+                    {
+                        Id = k,
+                        Title = g.First().Title,
+                        Description = g.First().Description,
+                        ISBN = g.First().ISBN,
+                        Author = g.First().Author,
+                        ListPrice = g.First().ListPrice,
+                        Price = g.First().Price,
+                        Price50 = g.First().Price50,
+                        Price100 = g.First().Price100,
+                        CategoryId = g.First().CategoryId,
+                        Category = new Category { Id = g.First().CategoryId, Name = g.First().CategoryName, DisplayOrder = g.First().CategoryDisplayOrder },
+                        ProductImages = g
+                            .Where(p => p.ProductImageId is not null)
+                            .Select(p => new ProductImage { Id = p.ProductImageId ?? 0, ImageUrl = p.ProductImageUrl ?? "", ProductId = k }).ToList()
+                    }
+                    )
+                .ToDictionary(p => p.Id, p => p);
 
             foreach (var sc in shoppingCartList)
             {
-                sc.Product = products[sc.ProductId];
+                if (products is not null) sc.Product = products[sc.ProductId];
             };
 
             var OrderTotal = shoppingCartList.Select(sc => GetPriceBasedOnQuantity(sc) * sc.Count).Sum();

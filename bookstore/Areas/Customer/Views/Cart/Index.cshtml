@@ -26,10 +26,19 @@
                     {
                         <div class="row border-bottom pb-3">
                             <div class="d-none d-lg-block col-lg-1 text-center py-2">
-                                <a asp-area="Customer" asp-controller="Home" asp-action="Details"
-                                    asp-route-entityId="@sc.ProductId">
-                                    <img src="@sc.Product.ImageUrl" class="rounded" width="100%" />
-                                </a>
+                                @if (@sc.Product.ProductImages?.Count > 0)
+                                {
+                                    <a asp-area="Customer" asp-controller="Home" asp-action="Details"
+                                        asp-route-entityId="@sc.ProductId">
+                                        <img src="@sc.Product.ProductImages.First().ImageUrl" class="rounded" width="100%" />
+                                    </a>
+                                }
+                                else
+                                    {
+                                        <a asp-area="Customer" asp-controller="Home" asp-action="Details">
+                                            <img src="https://placehold.co/500x600/png" class="card-img-top rounded w-100" />
+                                        </a>
+                                    }                                
                             </div>
                             <div class="col-12 col-lg-6 pt-md-3">
                                 <h5 class="text-uppercase text-secondary"><strong>@sc.Product.Title</strong></h5>
