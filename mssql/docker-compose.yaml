@@ -11,9 +11,9 @@ services:
             ACCEPT_EULA: 'Y'
             MSSQL_PID: Express
         volumes:
-            - ./db/data:/var/opt/mssql/data
-            - ./db/log:/var/opt/mssql/log
-            - ./db/secrets:/var/opt/mssql/secrets
+            - ../../db/data:/var/opt/mssql/data
+            - ../../db/log:/var/opt/mssql/log
+            - ../../db/secrets:/var/opt/mssql/secrets
         networks:
             - local-dotnet-dev
 

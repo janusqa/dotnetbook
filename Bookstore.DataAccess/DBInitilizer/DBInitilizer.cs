@@ -62,7 +62,7 @@ namespace BookStore.DataAccess.DBInitilizer
             if (RolesToCreate.Contains(SD.Role_Admin))
             {
 
-                var adminEmail = "social@retrievo.net";
+                var adminEmail = "your@email.com";
                 await _userManager.CreateAsync(new ApplicationUser
                 {
                     UserName = adminEmail,
@@ -73,7 +73,7 @@ namespace BookStore.DataAccess.DBInitilizer
                     City = "Bridgetown",
                     PostalCode = "BGI",
                     State = "St. Michael"
-                }, "P@ssw0rd");
+                }, "your_password");
 
                 var user = _uow.ApplicationUsers.FromSql($@"
                     SELECT * from dbo.AspNetUsers WHERE Email = @Email
